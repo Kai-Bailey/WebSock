@@ -1,7 +1,18 @@
 import socket
 import threading
+import hashlib
+import base64
+
 
 class WebSocketServer():
+
+    _SEC_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+    _HANDKSHAKE_RESP = (
+        "HTTP/1.1 101 Switching Protocols\r\n"
+        "Upgrade: websocket\r\n"
+        "Connection: Upgrade\r\n"
+        "Sec-WebSocket-Accept: %s\r\n\r\n"
+    )
 
     def __init__(self, ip, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,7 +26,7 @@ class WebSocketServer():
         """
         self.server.bind((self.ip, self.port))
         self.server.listen(5)
-        
+
         while True:
             client, addr = self.server.accept()
             self.clients[addr[0]] = client
@@ -45,6 +56,17 @@ class WebSocketServer():
         """
         pass
 
+    @staticmethod
+    def _digest(sec_key):
+        """Concatenates the sec_key with the _SEC_KEY and computes the SHA1 hash.
+
+        :param sec_key: The sec_key provided in the upgrade request by a client.
+
+        :returns: A base64 encoding of the SHA1 digest.
+        """
+        raw = sec_key + WebSocketServer._SEC_KEY
+        return base64.b64encode(hashlib.sha1(raw.encode("ascii")).digest())
+
     def _initiate_close(self, client):
         """Sends the first Closing frame to the client.
 
@@ -57,5 +79,4 @@ class WebSocketServer():
 
         :param client: The Client who requested the connection close.
         """
-        pass        
-                                                                                                
+        pass
