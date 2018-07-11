@@ -44,7 +44,7 @@ class TestHandShake(unittest.TestCase):
         self.assertEqual(expected_upgrade_response, upgrade_response)
 
     def test_handshake_invalid(self):
-        """Test the handshake output for a valid upgrade request."""
+        """Test the handshake output for an invalid upgrade request."""
         upgrade_request_bad_upgrade = (
             "GET /chat HTTP/1.1\r\n"
             "Host: example.com:8000\r\n"
