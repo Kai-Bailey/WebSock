@@ -50,17 +50,19 @@ class WebSocketServer():
             self.send(data, client)
 
     def _opening_handshake(self, client, data):
-        """Complete opening handshake between the client and the server.
+        """Derives handshake response to a client upgrade request.
 
         :param client: The client to complete the handshake with.
-        :param data: The raw data included in the upgrade request.
+        :param data: The raw data included in the upgrade request -- assumes
+        the input data is encoded in a utf-8 format.
 
         :returns (valid, response): A tuple containing a boolean flag 
-        indicating if the request was valid and a String containing
-        the handshake response or None if the data was invalid.
+        indicating if the request was valid, and a String containing
+        the handshake response (encoded in utf-8 format) or None if 
+        the upgrade request was invalid.
         """
         resp = (False, None)
-        tokens = data.split("\r\n")
+        tokens = data.decode().split("\r\n")
 
         if "Upgrade: websocket" not in tokens or "Connection: Upgrade" not in tokens:
             return resp
@@ -69,7 +71,7 @@ class WebSocketServer():
             label, value = token.split(": ", 1)
             if label == "Sec-WebSocket-Key":
                 digest = WebSocketServer._digest(value)
-                resp = (True, WebSocketServer._HANDKSHAKE_RESP % (digest))
+                resp = (True, (WebSocketServer._HANDKSHAKE_RESP % (digest)).encode())
                 break
 
         return resp

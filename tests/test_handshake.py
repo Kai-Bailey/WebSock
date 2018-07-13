@@ -39,9 +39,9 @@ class TestHandShake(unittest.TestCase):
 
         ws = WS.WebSocketServer(None, None)
 
-        valid, upgrade_response = ws._opening_handshake(None, upgrade_request)
+        valid, upgrade_response = ws._opening_handshake(None, upgrade_request.encode())
         self.assertTrue(valid)
-        self.assertEqual(expected_upgrade_response, upgrade_response)
+        self.assertEqual(expected_upgrade_response, upgrade_response.decode())
 
     def test_handshake_invalid(self):
         """Test the handshake output for an invalid upgrade request."""
@@ -66,11 +66,11 @@ class TestHandShake(unittest.TestCase):
         ws = WS.WebSocketServer(None, None)
 
         valid, _ = ws._opening_handshake(
-            None, upgrade_request_bad_upgrade)
+            None, upgrade_request_bad_upgrade.encode())
         self.assertFalse(valid)
 
         valid, _ = ws._opening_handshake(
-            None, upgrade_request_bad_connection)
+            None, upgrade_request_bad_connection.encode())
         self.assertFalse(valid)
 
 
