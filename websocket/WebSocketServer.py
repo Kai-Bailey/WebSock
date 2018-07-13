@@ -100,3 +100,81 @@ class WebSocketServer():
         :param client: The Client who requested the connection close.
         """
         pass
+
+
+class WS_FRAME_FORMAT:
+
+    """ Contains information about the format of the data frames. 
+
+    The following keys hold information about the format of each 
+    field:
+        'LABEL'      - Returns the field name as a String.
+        'START_BIT'  - Returns the index of the first bit for the field.
+        'BIT_LENGTH' - Returns the number of bits in the field.
+
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-------+-+-------------+-------------------------------+
+     |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+     |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+     |N|V|V|V|       |S|             |   (if payload len==126/127)   |
+     | |1|2|3|       |K|             |                               |
+     +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+     |     Extended payload length continued, if payload len == 127  |
+     + - - - - - - - - - - - - - - - +-------------------------------+
+     |                               |Masking-key, if MASK set to 1  |
+     +-------------------------------+-------------------------------+
+     | Masking-key (continued)       |          Payload Data         |
+     +-------------------------------- - - - - - - - - - - - - - - - +
+     :                     Payload Data continued ...                :
+     + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+     |                     Payload Data continued ...                |
+     +---------------------------------------------------------------+
+    """
+
+    FIN = {
+        'LABEL': "Fin",
+        'START_BIT': 0,
+        'BIT_LENGTH': 1
+    }
+
+    MASK = {
+        'LABEL': "Mask",
+        'START_BIT': 8,
+        'BIT_LENGTH': 1
+    }
+
+    OPCODE = {
+        'LABEL': "OpCode",
+        'START_BIT': 4,
+        'BIT_LENGTH': 4
+    }
+
+    PAYLOAD_LEN = {
+        'LABEL': "Payload Length",
+        'START_BIT': 9,
+        'BIT_LENGTH': 7
+    }
+
+    PAYLOAD_LEN_EXT_126 = {
+        'LABEL': "Extended Payload Length (126)",
+        'START_BIT': 16,
+        'BIT_LENGTH': 16
+    }
+
+    PAYLOAD_LEN_EXT_127 = {
+        'LABEL': "Extended Payload Length (127)",
+        'START_BIT': 16,
+        'BIT_LENGTH': 64
+    }
+
+    MASK_KEY = {
+        'LABEL': "Masking Key",
+        'START_BIT': 79,
+        'BIT_LENGTH': 32
+    }
+
+    PAYLOAD = {
+        'LABEL': "Payload",
+        'START_BIT': 111,
+        'BIT_LENGTH': -1 # Payload length must be read from the PAYLOAD_LEN field.
+    }
