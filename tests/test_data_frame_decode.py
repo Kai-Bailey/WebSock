@@ -13,7 +13,12 @@ class TestDataFrameDecode(unittest.TestCase):
 
     def test_decode(self):
         """Test that data frames are decoded properly."""
-        pass
+        encoded_data = b'\x81\x97p\xb4\x99"$\xdc\xf0QP\xdd\xea\x02\x11\x94\xedG\x03\xc0\xb9O\x15\xc7\xeaC\x17\xd1\xb7'
+        expected_decoded_data = "This is a test message."
+
+        valid, decoded_data = WS.WebSocketServer._decode_data_frame(encoded_data)
+        self.assertTrue(valid)
+        self.assertEqual(expected_decoded_data, decoded_data)
 
 
 if __name__ == "__main__":

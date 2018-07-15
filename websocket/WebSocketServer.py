@@ -2,6 +2,7 @@ import socket
 import threading
 import hashlib
 import base64
+from DataFrameFormat import *
 
 
 class WebSocketServer():
@@ -71,7 +72,8 @@ class WebSocketServer():
             label, value = token.split(": ", 1)
             if label == "Sec-WebSocket-Key":
                 digest = WebSocketServer._digest(value)
-                resp = (True, (WebSocketServer._HANDKSHAKE_RESP % (digest)).encode())
+                resp = (True, (WebSocketServer._HANDKSHAKE_RESP %
+                               (digest)).encode())
                 break
 
         return resp
@@ -88,24 +90,72 @@ class WebSocketServer():
         return base64.b64encode(hashlib.sha1(raw.encode("ascii")).digest()).decode("utf-8")
 
     @staticmethod
-    def _decode_dataframe(data):
+    def _decode_data_frame(data):
         """Decodes a data frame formatted as per RFC 6455.
 
-        :param data: The raw data frame.
-
-        :returns: A String of the payload or None if the format could not be understood.
+        :param data: The incoming byte string.
+ 
+        :returns: A tuple of (boolean, String) where the boolean indicates if 
+        the data frame could be understood.
         """
-        pass
+        fin = (data[FIN[LOW]]&FIN[BIT_MASK])>>FIN[OFFSET]
+        opcode = (data[OPCODE[LOW]]&OPCODE[BIT_MASK])>>OPCODE[OFFSET]
+
+        mask_key_low = PAYLOAD_LEN[HIGH]+1
+        payload_len = (data[PAYLOAD_LEN[LOW]]&PAYLOAD_LEN[BIT_MASK])>>PAYLOAD_LEN[OFFSET]
+        if payload_len == 126:
+            # Read the next 16 bits.
+            mask_key_low = PAYLOAD_LEN_EXT_126[HIGH]+1
+            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_126[LOW] : PAYLOAD_LEN_EXT_126[HIGH]+1],'big')
+        elif payload_len == 127:
+            # Read the next 64 bits.
+            mask_key_low = PAYLOAD_LEN_EXT_127[HIGH]+1
+            payload_len = int.from_bytes(data[PAYLOAD_LEN_EXT_127[LOW] : PAYLOAD_LEN_EXT_127[HIGH]+1],'big')
+
+        mask = (data[MASK[LOW]]&MASK[BIT_MASK])>>MASK[OFFSET]
+        mask_key_high = mask_key_low + MASK_KEY[LEN] if mask else mask_key_low
+        mask_key = payload = None
+
+        if mask: # Need to unmask the payload data.
+            mask_key = data[mask_key_low: mask_key_high]
+            encrypted = data[mask_key_high: mask_key_high+payload_len]
+            payload = bytearray(encrypted[i]^mask_key[i%4] for i in range(len(encrypted)))
+        else:
+            payload = data[mask_key_high: mask_key_high+payload_len]
+
+        return (True, bytes(payload).decode())
+
 
     @staticmethod
-    def _encode_dataframe(data):
+    def _encode_data_frame(data):
         """Formats data into a data frame as per RFC 6455.
 
         :param data: The data to be formatted.
 
-        :returns: The formatted data.
+        :returns: The formatted data frame.
         """
-        pass
+        data = data.encode()
+        fin = opcode = 1 # Assumed text data for now.
+        mask = 0 # Server never masks data.
+
+        # Create the data frame one byte at a time.
+        frame = bytearray()
+        frame.append((fin<<FIN[OFFSET])^opcode)
+
+        payload_len = len(data)
+        if payload_len < 126:
+            frame.append((mask<<MASK[OFFSET])^payload_len)
+        elif payload_len < 65535 : # Can the length fit in 16 bits?
+            frame.append((mask<<MASK[OFFSET])^126)
+            for i in range(PAYLOAD_LEN_EXT_126[LEN]-1,-1,-1):
+                frame.append((payload_len>>(i*8))&255)
+        else:
+            frame.append((mask<<MASK[OFFSET])^127)
+            for i in range(PAYLOAD_LEN_EXT_127[LEN]-1,-1,-1):
+                frame.append((payload_len>>(i*8))&255)
+
+        frame.extend(data)        
+        return bytes(frame)
 
     def _initiate_close(self, client):
         """Sends the first Closing frame to the client.
@@ -120,81 +170,3 @@ class WebSocketServer():
         :param client: The Client who requested the connection close.
         """
         pass
-
-
-class WS_FRAME_FORMAT:
-
-    """ Contains information about the format of the data frames. 
-
-    The following keys hold information about the format of each 
-    field:
-        'LABEL'      - Returns the field name as a String.
-        'START_BIT'  - Returns the index of the first bit for the field.
-        'BIT_LENGTH' - Returns the number of bits in the field.
-
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-        +-+-+-+-+-------+-+-------------+-------------------------------+
-        |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
-        |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
-        |N|V|V|V|       |S|             |   (if payload len==126/127)   |
-        | |1|2|3|       |K|             |                               |
-        +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
-        |     Extended payload length continued, if payload len == 127  |
-        + - - - - - - - - - - - - - - - +-------------------------------+
-        |                               |Masking-key, if MASK set to 1  |
-        +-------------------------------+-------------------------------+
-        | Masking-key (continued)       |          Payload Data         |
-        +-------------------------------- - - - - - - - - - - - - - - - +
-        :                     Payload Data continued ...                :
-        + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
-        |                     Payload Data continued ...                |
-        +---------------------------------------------------------------+
-    """
-
-    FIN = {
-        'LABEL': "Fin",
-        'START_BIT': 0,
-        'BIT_LENGTH': 1
-    }
-
-    MASK = {
-        'LABEL': "Mask",
-        'START_BIT': 8,
-        'BIT_LENGTH': 1
-    }
-
-    OPCODE = {
-        'LABEL': "OpCode",
-        'START_BIT': 4,
-        'BIT_LENGTH': 4
-    }
-
-    PAYLOAD_LEN = {
-        'LABEL': "Payload Length",
-        'START_BIT': 9,
-        'BIT_LENGTH': 7
-    }
-
-    PAYLOAD_LEN_EXT_126 = {
-        'LABEL': "Extended Payload Length (126)",
-        'START_BIT': 16,
-        'BIT_LENGTH': 16
-    }
-
-    PAYLOAD_LEN_EXT_127 = {
-        'LABEL': "Extended Payload Length (127)",
-        'START_BIT': 16,
-        'BIT_LENGTH': 64
-    }
-
-    MASK_KEY = {
-        'LABEL': "Masking Key",
-        'START_BIT': 79,
-        'BIT_LENGTH': 32
-    }
-
-    PAYLOAD = {
-        'LABEL': "Payload",
-        'START_BIT': 111,
-        'BIT_LENGTH': -1 # Payload length must be read from the PAYLOAD_LEN field.
-    }
