@@ -16,7 +16,12 @@ def on_connection_open(client):
 def on_error(exception):
     """Called when the server returns an error
     """
-    pass
+
+    print("client:")
+    print(exception.client)
+    print("exception: ")
+    raise exception
+    
 
 def on_connection_close(client):
     """Called by the WebSocketServer when a connection is closed."""
@@ -26,6 +31,6 @@ def on_server_destruct():
     """Called immediately prior to the WebSocketServer shutting down."""
     pass
 
-ws = WebSocketServer.WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_connection_open=on_connection_open)
+ws = WebSocketServer.WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_connection_open=on_connection_open, on_error=on_error)
 ws.serve_forever()
 

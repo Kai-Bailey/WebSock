@@ -3,7 +3,7 @@ import threading
 import hashlib
 import base64
 from DataFrameFormat import *
-
+from ServerException import *
 
 class WebSocketServer():
 
@@ -27,25 +27,33 @@ class WebSocketServer():
         self.on_error = on_error
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((self.ip, self.port))
-        self.server.listen(5)
 
     def serve_forever(self):
         """Just like serve_once but forever.
         """
+        self.server.bind((self.ip, self.port))
+        self.server.listen(5)
         while True:
-            self.serve_once()
+            self.serve_once(serve_forever=True)
 
-    def serve_once(self):
+    def serve_once(self, serve_forever=False):
         """Listen for incoming connections and start a new thread if a client is recieved.
         """
+
+        if not serve_forever:
+            self.server.bind((self.ip, self.port))
+            self.server.listen(5)
 
         print("Ready to Accept")
         client, addr = self.server.accept()
         self.clients[addr[0]] = client
 
-        client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
-        client_thread.start()
+        if serve_forever:
+            client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
+            client_thread.start()
+        else:
+            self._manage_client(client)
+
 
     def _manage_client(self, client):
         """This function is run on a seperate thread for each client. It will complete the opening handshake 
@@ -62,18 +70,17 @@ class WebSocketServer():
         if valid:
             client.send(ack)
         else:
-            return                                      #TODO Error handling system
+            self.on_error(WebSocketInvalidHandshake("Invalid Handshake", client))            
 
 
         while True:
             data = client.recv(2048)
-            isValid, data = self._decode_data_frame(data)
-
+            valid, data = self._decode_data_frame(data)
             
-            if isValid:
+            if valid:
                 self.on_data_receive(client, data) 
             else:
-                break
+                self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
     def send(self, client, data):
         """Send a string of data to the client.
