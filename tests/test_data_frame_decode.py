@@ -17,7 +17,7 @@ class TestDataFrameDecode(unittest.TestCase):
         expected_decoded_data = "This is a test message."
 
         valid, decoded_data = WS.WebSocketServer._decode_data_frame(encoded_data)
-        self.assertTrue(valid)
+        self.assertTrue(valid is not None)
         self.assertEqual(expected_decoded_data, decoded_data)
 
 

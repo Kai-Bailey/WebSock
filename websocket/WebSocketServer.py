@@ -81,7 +81,7 @@ class WebSocketServer():
         :param data: A String of data formatted as ASCII.
         :param client: The Client to send the data too.
         """
-        data = self._encode_data_frame(data)
+        data = self._encode_data_frame(PayloadType.TEXT, data)
         client.send(data)
 
     def send_all(self, client, data):
@@ -138,11 +138,18 @@ class WebSocketServer():
 
         :param data: The incoming byte string.
  
-        :returns: A tuple of (boolean, String) where the boolean indicates if 
-        the data frame could be understood.
+        :returns: A tuple of (PayloadType, String) where the PayloadType will be None
+        if the data could not be understood.
         """
         fin = (data[FIN[LOW]]&FIN[BIT_MASK])>>FIN[OFFSET]
         opcode = (data[OPCODE[LOW]]&OPCODE[BIT_MASK])>>OPCODE[OFFSET]
+
+        # Check that the payload is valid.
+        payload_type = [p_type for p_type in PayloadType if opcode == p_type]
+        if not payload_type:
+            return (None, None)
+        else:
+            payload_type = payload_type[0]
 
         mask_key_low = PAYLOAD_LEN[HIGH]+1
         payload_len = (data[PAYLOAD_LEN[LOW]]&PAYLOAD_LEN[BIT_MASK])>>PAYLOAD_LEN[OFFSET]
@@ -166,20 +173,23 @@ class WebSocketServer():
         else:
             payload = data[mask_key_high: mask_key_high+payload_len]
 
-        return (True, bytes(payload).decode())
+        return (payload_type, bytes(payload).decode())
 
 
     @staticmethod
-    def _encode_data_frame(data):
+    def _encode_data_frame(payload_type, data):
         """Formats data into a data frame as per RFC 6455.
 
+        :param payload_type: PayloadType indicating the type of data being sent.
         :param data: The data to be formatted.
 
         :returns: The formatted data frame.
         """
         data = data.encode()
-        fin = opcode = 1 # Assumed text data for now.
+
+        fin = 1  # No fragmentation support yet.
         mask = 0 # Server never masks data.
+        opcode = payload_type.value
 
         # Create the data frame one byte at a time.
         frame = bytearray()

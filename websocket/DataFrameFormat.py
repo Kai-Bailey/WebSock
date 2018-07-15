@@ -41,7 +41,7 @@ FIN = {
     'LOW_BYTE': 0,
     'HIGH_BYTE': 0,
     'BIT_MASK': 128,
-    'BYTE_LENGTH' : 1,
+    'BYTE_LENGTH': 1,
     'OFFSET': 7
 }
 
@@ -50,7 +50,7 @@ OPCODE = {
     'LOW_BYTE': 0,
     'HIGH_BYTE': 0,
     'BIT_MASK': 15,
-    'BYTE_LENGTH' : 1,
+    'BYTE_LENGTH': 1,
     'OFFSET': 0
 }
 
@@ -59,7 +59,7 @@ MASK = {
     'LOW_BYTE': 1,
     'HIGH_BYTE': 1,
     'BIT_MASK': 128,
-    'BYTE_LENGTH' : 4,
+    'BYTE_LENGTH': 4,
     'OFFSET': 7
 }
 
@@ -68,7 +68,7 @@ PAYLOAD_LEN = {
     'LOW_BYTE': 1,
     'HIGH_BYTE': 1,
     'BIT_MASK': 127,
-    'BYTE_LENGTH' : 1,
+    'BYTE_LENGTH': 1,
     'OFFSET': 0
 }
 
@@ -77,7 +77,7 @@ PAYLOAD_LEN_EXT_126 = {
     'LOW_BYTE': 2,
     'HIGH_BYTE': 3,
     'BIT_MASK': 65535,
-    'BYTE_LENGTH' : 2,
+    'BYTE_LENGTH': 2,
     'OFFSET': 0
 }
 
@@ -86,7 +86,7 @@ PAYLOAD_LEN_EXT_127 = {
     'LOW_BYTE': 2,
     'HIGH_BYTE': 9,
     'BIT_MASK': 9223372036854775807,
-    'BYTE_LENGTH' : 8,
+    'BYTE_LENGTH': 8,
     'OFFSET': 0
 }
 
@@ -95,8 +95,8 @@ MASK_KEY = {  # The starting bytes for the mask key depend on the payload length
     'LOW_BYTE': None,
     'HIGH_BYTE': None,
     'BIT_MASK': 4294967295,
-    'BYTE_LENGTH' : 4,
-    'OFFSET': 0 
+    'BYTE_LENGTH': 4,
+    'OFFSET': 0
 }
 
 PAYLOAD = {  # The low/high bytes for the payload depend on the payload length format and should be set dynamically.
@@ -104,6 +104,16 @@ PAYLOAD = {  # The low/high bytes for the payload depend on the payload length f
     'LOW_BYTE': None,
     'HIGH_BYTE': None,
     'BIT_MASK': 0,
-    'BYTE_LENGTH' : None,
+    'BYTE_LENGTH': None,
     'OFFSET': 0
 }
+
+from enum import IntEnum
+
+class PayloadType(IntEnum):
+    CONTINUATION = 0
+    TEXT = 1
+    BINARY = 2
+    CLOSE = 8
+    PING = 9
+    PONG = 10
