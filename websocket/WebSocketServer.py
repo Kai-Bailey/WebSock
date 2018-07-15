@@ -15,40 +15,83 @@ class WebSocketServer():
         "Sec-WebSocket-Accept: %s\r\n\r\n"
     )
 
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None):
         self.server = None
         self.ip = ip
         self.port = port
         self.clients = {}
+        self.on_data_receive = on_data_receive
+        self.on_connection_open = on_connection_open
+        self.on_connection_close = on_connection_close
+        self.on_server_destruct = on_server_destruct
+        self.on_error = on_error
 
-    def serve(self):
-        """Bind server to port and listen for incoming messages.
-
-        """
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((self.ip, self.port))
         self.server.listen(5)
 
+    def serve_forever(self):
+        """Just like serve_once but forever.
+        """
         while True:
-            client, addr = self.server.accept()
-            self.clients[addr[0]] = client
-            threading._start_new_thread(self._opening_handshake, client)
+            self.serve_once()
 
-    def send(self, data, client):
+    def serve_once(self):
+        """Listen for incoming connections and start a new thread if a client is recieved.
+        """
+
+        print("Ready to Accept")
+        client, addr = self.server.accept()
+        self.clients[addr[0]] = client
+
+        client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
+        client_thread.start()
+
+    def _manage_client(self, client):
+        """This function is run on a seperate thread for each client. It will complete the opening handshake 
+            and then listen for incoming messages executing the users defined functions.
+
+        :param client: The client to control
+        """
+
+        self.on_connection_open(client)   
+
+        upgrade_req = client.recv(2048)
+        valid, ack = self._opening_handshake(client, upgrade_req)
+
+        if valid:
+            client.send(ack)
+        else:
+            return                                      #TODO Error handling system
+
+
+        while True:
+            data = client.recv(2048)
+            isValid, data = self._decode_data_frame(data)
+
+            
+            if isValid:
+                self.on_data_receive(client, data) 
+            else:
+                break
+
+    def send(self, client, data):
         """Send a string of data to the client.
 
         :param data: A String of data formatted as ASCII.
         :param client: The Client to send the data too.
         """
-        pass
+        data = self._encode_data_frame(data)
+        client.send(data)
 
-    def send_all(self, data):
+    def send_all(self, client, data):
         """Send a string of data to all clients.
 
         :param data: A string of data formatted as ASCII
         """
 
-        for client in self.clients:
-            self.send(data, client)
+        for client in self.clients.values():
+            self.send(client, data)
 
     def _opening_handshake(self, client, data):
         """Derives handshake response to a client upgrade request.

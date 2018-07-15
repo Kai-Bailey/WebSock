@@ -1,20 +1,31 @@
-class ExampleEchoServer:
 
-    def __init__(self):
-        pass
+import WebSocketServer
 
-    def on_data_receive(self):
-        """Called by the WebSocketServer when data is received."""
-        pass
+def on_data_receive(client, data):
+    """Called by the WebSocketServer when data is received."""
 
-    def on_connection_open(self):
-        """Called by the WebSocketServer when a new connection is opened."""
-        pass
+    print(data)
+    data += '!'
+    ws.send(client, data)
 
-    def on_connection_close(self):
-        """Called by the WebSocketServer when a connection is closed."""
-        pass
+def on_connection_open(client):
+    """Called by the WebSocketServer when a new connection is opened.
+    """
+    pass
+    
+def on_error(exception):
+    """Called when the server returns an error
+    """
+    pass
 
-    def on_server_destruct(self):
-        """Called immediately prior to the WebSocketServer shutting down."""
-        pass
+def on_connection_close(client):
+    """Called by the WebSocketServer when a connection is closed."""
+    pass
+
+def on_server_destruct():
+    """Called immediately prior to the WebSocketServer shutting down."""
+    pass
+
+ws = WebSocketServer.WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_connection_open=on_connection_open)
+ws.serve_forever()
+
