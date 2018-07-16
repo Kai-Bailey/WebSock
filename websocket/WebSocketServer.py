@@ -46,7 +46,7 @@ class WebSocketServer():
 
         print("Ready to Accept")
         client, addr = self.server.accept()
-        self.clients[addr[0]] = client
+        self.clients[addr] = client
 
         if serve_forever:
             client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
@@ -76,19 +76,25 @@ class WebSocketServer():
         while True:
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
-            
-            if valid:
+            if valid == FrameType.TEXT:
                 self.on_data_receive(client, data) 
+            elif valid == FrameType.CLOSE:
+                if self.on_connection_close:
+                    self.on_connection_close()
+                self._initiate_close(client)
+                self.clients.pop(client.getpeername(), None)
+                break
             else:
                 self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
-    def send(self, client, data):
+    def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
 
-        :param data: A String of data formatted as ASCII.
+        :param data: The data to send.
         :param client: The Client to send the data too.
+        :param data_type: The FrameType -- assumed to be a utf-8 encoded String if left out.
         """
-        data = self._encode_data_frame(PayloadType.TEXT, data)
+        data = WebSocketServer._encode_data_frame(data_type, data)
         client.send(data)
 
     def send_all(self, client, data):
@@ -145,18 +151,18 @@ class WebSocketServer():
 
         :param data: The incoming byte string.
  
-        :returns: A tuple of (PayloadType, String) where the PayloadType will be None
+        :returns: A tuple of (FrameType, String) where the FrameType will be None
         if the data could not be understood.
         """
         fin = (data[FIN[LOW]]&FIN[BIT_MASK])>>FIN[OFFSET]
         opcode = (data[OPCODE[LOW]]&OPCODE[BIT_MASK])>>OPCODE[OFFSET]
 
         # Check that the payload is valid.
-        payload_type = [p_type for p_type in PayloadType if opcode == p_type]
-        if not payload_type:
+        frame_type = [f_type for f_type in FrameType if opcode == f_type]
+        if not frame_type:
             return (None, None)
         else:
-            payload_type = payload_type[0]
+            frame_type = frame_type[0]
 
         mask_key_low = PAYLOAD_LEN[HIGH]+1
         payload_len = (data[PAYLOAD_LEN[LOW]]&PAYLOAD_LEN[BIT_MASK])>>PAYLOAD_LEN[OFFSET]
@@ -180,29 +186,29 @@ class WebSocketServer():
         else:
             payload = data[mask_key_high: mask_key_high+payload_len]
 
-        return (payload_type, bytes(payload).decode())
+        return (frame_type, bytes(payload).decode())
 
 
     @staticmethod
-    def _encode_data_frame(payload_type, data):
+    def _encode_data_frame(frame_type, data):
         """Formats data into a data frame as per RFC 6455.
 
-        :param payload_type: PayloadType indicating the type of data being sent.
+        :param frame_type: FrameType indicating the type of data being sent.
         :param data: The data to be formatted.
 
         :returns: The formatted data frame.
         """
-        data = data.encode()
+        data = data.encode() if data else None
 
         fin = 1  # No fragmentation support yet.
         mask = 0 # Server never masks data.
-        opcode = payload_type.value
+        opcode = frame_type.value
 
         # Create the data frame one byte at a time.
         frame = bytearray()
         frame.append((fin<<FIN[OFFSET])^opcode)
 
-        payload_len = len(data)
+        payload_len = len(data) if data else 0
         if payload_len < 126:
             frame.append((mask<<MASK[OFFSET])^payload_len)
         elif payload_len < 65535 : # Can the length fit in 16 bits?
@@ -213,20 +219,34 @@ class WebSocketServer():
             frame.append((mask<<MASK[OFFSET])^127)
             for i in range(PAYLOAD_LEN_EXT_127[LEN]-1,-1,-1):
                 frame.append((payload_len>>(i*8))&255)
-
-        frame.extend(data)        
+        
+        if payload_len > 0:
+            frame.extend(data)    
         return bytes(frame)
 
-    def _initiate_close(self, client):
+    def _initiate_close(self, client, status_code=None, app_data=None):
         """Sends the first Closing frame to the client.
 
         :param client: The Client connection to close.
+        :param status_code: A 16 bit optional status code.
+        :param app_data: A utf-8 encoded String to include with the close frame.
         """
-        pass
+        # Concatenate the status_code and app_data into one byte string if provided.
+        payload_bytes = []
+        if status_code is not None:
+            status_bytes = bytearray([status_code & 255, (status_code >> 8) & 255])
+            payload_bytes.append(bytes(status_bytes))
+
+        if app_data is not None:
+            payload_bytes.append(app_data.encode())
+
+        self.send(client, b''.join(payload_bytes) if len(payload_bytes) > 0 else None, FrameType.CLOSE)
 
     def _respond_to_close(self, client):
-        """Acknowledge the closing of a client connection.
+        """Acknowledge the closing of a client connection -- for now, just send an empty
+        close frame (i.e. same as initiating a close frame with no app_data). Later, this
+        will be udpated to echo the status_code from the client's close frame.
 
         :param client: The Client who requested the connection close.
         """
-        pass
+        self._initiate_close(client)
