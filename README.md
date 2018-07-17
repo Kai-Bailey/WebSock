@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/websock.svg)](https://pypi.org/project/websock/)
 [![Build Status](https://travis-ci.org/Kai-Bailey/websocket.svg?branch=master)](https://travis-ci.org/Kai-Bailey/websocket)
 
-<img src="logo/WebSock.jpg" width="60%">
+<img src="logo/WebSock.JPG" width="60%">
 
 A lightweight, multithreaded WebSocket server written in Python. 
 
