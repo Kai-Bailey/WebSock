@@ -20,13 +20,18 @@ class WebSocketServer():
         self.ip = ip
         self.port = port
         self.clients = {}
-        self.on_data_receive = on_data_receive
-        self.on_connection_open = on_connection_open
-        self.on_connection_close = on_connection_close
-        self.on_server_destruct = on_server_destruct
-        self.on_error = on_error
+        self.on_data_receive = on_data_receive if on_data_receive != None else self._default_func
+        self.on_connection_open = on_connection_open if on_connection_open != None else self._default_func
+        self.on_connection_close = on_connection_close if on_connection_close != None else self._default_func
+        self.on_server_destruct = on_server_destruct if on_server_destruct != None else self._default_func
+        self.on_error = on_error if on_error != None else self._default_func
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def _default_func(self, *args, **kwargs):
+        """Default function if the user does not define one.
+        """
+        pass
 
     def serve_forever(self):
         """Just like serve_once but forever.
@@ -37,7 +42,7 @@ class WebSocketServer():
             self.serve_once(serve_forever=True)
 
     def serve_once(self, serve_forever=False):
-        """Listen for incoming connections and start a new thread if a client is recieved.
+        """Listen for incoming connections and start a new thread if a client is received.
         """
 
         if not serve_forever:
@@ -56,7 +61,7 @@ class WebSocketServer():
 
 
     def _manage_client(self, client):
-        """This function is run on a seperate thread for each client. It will complete the opening handshake 
+        """This function is run on a separate thread for each client. It will complete the opening handshake 
             and then listen for incoming messages executing the users defined functions.
 
         :param client: The client to control
@@ -72,15 +77,13 @@ class WebSocketServer():
         else:
             self.on_error(WebSocketInvalidHandshake("Invalid Handshake", client))            
 
-
         while True:
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
             if valid == FrameType.TEXT:
                 self.on_data_receive(client, data) 
             elif valid == FrameType.CLOSE:
-                if self.on_connection_close:
-                    self.on_connection_close()
+                self.on_connection_close()
                 self._initiate_close(client)
                 self.clients.pop(client.getpeername(), None)
                 break
