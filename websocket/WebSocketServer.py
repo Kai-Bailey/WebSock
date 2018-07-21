@@ -2,11 +2,13 @@ import socket
 import threading
 import hashlib
 import base64
+import logging
 from DataFrameFormat import *
 from ServerException import *
 
 class WebSocketServer():
 
+    _LOGS = "ws.log"
     _SEC_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
     _HANDKSHAKE_RESP = (
         "HTTP/1.1 101 Switching Protocols\r\n"
@@ -15,7 +17,7 @@ class WebSocketServer():
         "Sec-WebSocket-Accept: %s\r\n\r\n"
     )
 
-    def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None):
+    def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
         self.server = None
         self.ip = ip
         self.port = port
@@ -25,8 +27,16 @@ class WebSocketServer():
         self.on_connection_close = on_connection_close if on_connection_close != None else self._default_func
         self.on_server_destruct = on_server_destruct if on_server_destruct != None else self._default_func
         self.on_error = on_error if on_error != None else self._default_func
-
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.DEBUG = DEBUG
+
+        # Initialize log file format.
+        logging.basicConfig(
+            filename=WebSocketServer._LOGS,
+            filemode='w',
+            format='%(levelname)s:\n\t%(message)s',
+            level=logging.DEBUG if DEBUG else logging.INFO
+        )
 
     def _default_func(self, *args, **kwargs):
         """Default function if the user does not define one.
@@ -52,6 +62,7 @@ class WebSocketServer():
         print("Ready to Accept")
         client, addr = self.server.accept()
         self.clients[addr] = client
+        logging.info("New Connection: {}".format(client.getsockname()))
 
         if serve_forever:
             client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
@@ -81,12 +92,19 @@ class WebSocketServer():
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
             if valid == FrameType.TEXT:
-                self.on_data_receive(client, data) 
+                logging.info("Text Frame: {} - {}".format(client.getsockname(), data))
+                self.on_data_receive(client, data)
             elif valid == FrameType.CLOSE:
+                logging.info("Close Frame: {}".format(client.getsockname()))
                 self.on_connection_close()
                 self._initiate_close(client)
                 self.clients.pop(client.getpeername(), None)
                 break
+            elif valid == FrameType.PING:
+                logging.info("Ping Frame: {}".format(client.getsockname()))
+                self._pong(client)
+            elif valid == FrameType.PONG:
+                logging.info("Pong Frame: {}".format(client.getsockname()))
             else:
                 self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
@@ -253,3 +271,16 @@ class WebSocketServer():
         :param client: The Client who requested the connection close.
         """
         self._initiate_close(client)
+
+    def ping(self, client):
+        """Send a Ping frame.
+
+        :param client: The Client to ping."""
+        self.send(client, None, FrameType.PING)
+
+    def _pong(self, client):
+        """Send a Pong frame back to a client.
+
+        :param client: The Client who send the Ping.
+        """
+        self.send(client, None, FrameType.PONG)
