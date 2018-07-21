@@ -8,7 +8,6 @@ from ServerException import *
 
 class WebSocketServer():
 
-    _LOGS = "ws.log"
     _SEC_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
     _HANDKSHAKE_RESP = (
         "HTTP/1.1 101 Switching Protocols\r\n"
@@ -16,6 +15,10 @@ class WebSocketServer():
         "Connection: Upgrade\r\n"
         "Sec-WebSocket-Accept: %s\r\n\r\n"
     )
+
+    _LOGS_FILE = "ws.log"
+    _LOG_IN = "[IN] "
+    _LOG_OUT = "[OUT]"
 
     def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
         self.server = None
@@ -32,7 +35,7 @@ class WebSocketServer():
 
         # Initialize log file format.
         logging.basicConfig(
-            filename=WebSocketServer._LOGS,
+            filename=WebSocketServer._LOGS_FILE,
             filemode='w',
             format='%(levelname)s:\n\t%(message)s',
             level=logging.DEBUG if DEBUG else logging.INFO
@@ -62,7 +65,7 @@ class WebSocketServer():
         print("Ready to Accept")
         client, addr = self.server.accept()
         self.clients[addr] = client
-        logging.info("New Connection: {}".format(client.getsockname()))
+        logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getsockname()))
 
         if serve_forever:
             client_thread = threading.Thread(target=self._manage_client, args=(client,), daemon=True)
@@ -92,19 +95,19 @@ class WebSocketServer():
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
             if valid == FrameType.TEXT:
-                logging.info("Text Frame: {} - {}".format(client.getsockname(), data))
+                logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
                 self.on_data_receive(client, data)
             elif valid == FrameType.CLOSE:
-                logging.info("Close Frame: {}".format(client.getsockname()))
+                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
                 self.on_connection_close()
                 self._initiate_close(client)
                 self.clients.pop(client.getpeername(), None)
                 break
             elif valid == FrameType.PING:
-                logging.info("Ping Frame: {}".format(client.getsockname()))
+                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
                 self._pong(client)
             elif valid == FrameType.PONG:
-                logging.info("Pong Frame: {}".format(client.getsockname()))
+                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
             else:
                 self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
@@ -114,7 +117,9 @@ class WebSocketServer():
         :param data: The data to send.
         :param client: The Client to send the data too.
         :param data_type: The FrameType -- assumed to be a utf-8 encoded String if left out.
-        """
+        """ 
+        logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_OUT,
+                                               data_type.name, client.getsockname(), data if data else ''))
         data = WebSocketServer._encode_data_frame(data_type, data)
         client.send(data)
 
