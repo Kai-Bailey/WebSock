@@ -212,7 +212,7 @@ class WebSocketServer():
         else:
             payload = data[mask_key_high: mask_key_high+payload_len]
 
-        return (frame_type, bytes(payload).decode())
+        return (frame_type, bytes(payload).decode() if frame_type != FrameType.CLOSE else None)
 
 
     @staticmethod
