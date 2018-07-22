@@ -24,7 +24,8 @@ class WebSocketServer():
         self.server = None
         self.ip = ip
         self.port = port
-        self.clients = {}
+        self.alive = True
+        self.clients = {}   # Dictionary of active clients, remove when the connection is closed.
         self.on_data_receive = on_data_receive if on_data_receive != None else self._default_func
         self.on_connection_open = on_connection_open if on_connection_open != None else self._default_func
         self.on_connection_close = on_connection_close if on_connection_close != None else self._default_func
@@ -37,7 +38,7 @@ class WebSocketServer():
         logging.basicConfig(
             filename=WebSocketServer._LOGS_FILE,
             filemode='w',
-            format='%(levelname)s:\n\t%(message)s',
+            format='%(levelname)s:%(threadName)s\n\t%(message)s',
             level=logging.DEBUG if DEBUG else logging.INFO
         )
 
@@ -51,7 +52,7 @@ class WebSocketServer():
         """
         self.server.bind((self.ip, self.port))
         self.server.listen(5)
-        while True:
+        while self.alive:
             self.serve_once(serve_forever=True)
 
     def serve_once(self, serve_forever=False):
@@ -62,7 +63,7 @@ class WebSocketServer():
             self.server.bind((self.ip, self.port))
             self.server.listen(5)
 
-        print("Ready to Accept")
+        logging.info("Server is ready to accept")
         client, addr = self.server.accept()
         self.clients[addr] = client
         logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getsockname()))
@@ -76,7 +77,8 @@ class WebSocketServer():
 
     def _manage_client(self, client):
         """This function is run on a separate thread for each client. It will complete the opening handshake 
-            and then listen for incoming messages executing the users defined functions.
+            and then listen for incoming messages executing the users defined functions. The thread will close
+            when this function returns.
 
         :param client: The client to control
         """
@@ -91,7 +93,8 @@ class WebSocketServer():
         else:
             self.on_error(WebSocketInvalidHandshake("Invalid Handshake", client))            
 
-        while True:
+        address = client.getpeername()
+        while self.clients[address]:
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
             if valid == FrameType.TEXT:
@@ -99,10 +102,15 @@ class WebSocketServer():
                 self.on_data_receive(client, data)
             elif valid == FrameType.CLOSE:
                 logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-                self.on_connection_close()
+                
+                # Server sent closing message client connection has already closed
+                if self.clients[address]:
+                    break
+                
+                self.on_connection_close(client)
                 self._initiate_close(client)
                 self.clients.pop(client.getpeername(), None)
-                break
+                client.close()
             elif valid == FrameType.PING:
                 logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
                 self._pong(client)
@@ -276,6 +284,32 @@ class WebSocketServer():
         :param client: The Client who requested the connection close.
         """
         self._initiate_close(client)
+
+    def close_client(self, client, status_code=None, app_data=None):
+        """Close the connection with a client.
+
+        :param client: The client to close the connection with.
+        :param status_code: A 16 bit optional status code.
+        :param app_data: A utf-8 encoded String to include with the close frame.
+        """
+        self.on_connection_close(client)
+        self._initiate_close(client, status_code=status_code, app_data=app_data)
+        self.clients.pop(client.getpeername(), None)
+        client.close()
+
+    def close_server(self, status_code=None, app_data=None):
+        """Close the connection with each client and then close the underlying tcp socket of the server.
+        
+        :param status_code: A 16 bit optional status code to send to all of the clients.
+        :param app_data: A utf-8 encoded String to include with the close frame.
+        """
+
+        for client in list(self.clients.values()):
+            self.close_client(client, status_code=status_code, app_data=app_data)
+
+        self.on_server_destruct()
+        self.server.close()
+        self.alive = False
 
     def ping(self, client):
         """Send a Ping frame.
