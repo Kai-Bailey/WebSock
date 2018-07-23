@@ -81,10 +81,7 @@ class WebSocketServer():
             when this function returns.
 
         :param client: The client to control
-        """
-
-        self.on_connection_open(client)   
-
+        """   
         upgrade_req = client.recv(2048)
         valid, ack = self._opening_handshake(client, upgrade_req)
 
@@ -93,8 +90,10 @@ class WebSocketServer():
         else:
             self.on_error(WebSocketInvalidHandshake("Invalid Handshake", client))            
 
+        self.on_connection_open(client)
+
         address = client.getpeername()
-        while self.clients[address]:
+        while address in self.clients:
             data = client.recv(2048)
             valid, data = self._decode_data_frame(data)
             if valid == FrameType.TEXT:
