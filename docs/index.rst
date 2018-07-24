@@ -3,16 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to WebSock's documentation!
+Websock API Documentation
 ===================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: WebSocketServer
-    .. autoclass:: WebSocketServer
-        :members:
+.. autoclass:: WebSocketServer.WebSocketServer
+    :members:
 
 Indices and tables
 ==================
