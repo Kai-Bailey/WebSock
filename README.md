@@ -63,6 +63,8 @@ my_server = WebSocketServer.WebSocketServer(
 
 my_server.serve_forever()
 ```
+## API Documentation
+You can check out the full documentation for the API [here](https://websock.readthedocs.io/en/latest/).
 
 ## Authors
 * [Kai Bailey](https://github.com/Kai-Bailey) - Software engineering student at the University of Alberta.
