@@ -12,8 +12,8 @@
         username is replaced with their username.
       </li>
     </ul>
-    <div id="output"></div>
-    <textarea id="msg" rows="1" cols="50" onKeyPress="checkEnterPress(event, this)"></textarea>
+    <div id="output" style="overflow-y:scroll; height:500px;"></div>
+    <textarea id="msg" rows="1" cols="50" onKeyPress="checkEnterPress(event, this)" ></textarea>
     <br>
     <button id="sendbutton" type="button" onclick="sendMsg()">Send</button>
   </body>
@@ -62,6 +62,7 @@
     pre.style.wordWrap = "break-word";
     pre.innerHTML = message;
     output.appendChild(pre);
+    output.scrollTop = output.scrollHeight;
   }
 
   function msgServer(message) {
