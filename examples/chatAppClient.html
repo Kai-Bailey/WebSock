@@ -1,19 +1,37 @@
   <!DOCTYPE html>
-  <meta charset="utf-8" />
-  <title>WebSocket Test</title>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+
+  <body>
+    <h1>WebSock Example Chatroom</h1>
+    <ul>
+      <li>By default, your messages will be sent to everyone online.</li>
+      <li>To send a message to a specific user, use the format '@username your-message' where 
+        username is replaced with their username.
+      </li>
+    </ul>
+    <div id="output" style="overflow-y:scroll; height:500px;"></div>
+    <textarea id="msg" rows="1" cols="50" onKeyPress="checkEnterPress(event, this)" ></textarea>
+    <br>
+    <button id="sendbutton" type="button" onclick="sendMsg()">Send</button>
+  </body>
+
   <script language="javascript" type="text/javascript">
-
-  var wsUri = "142.93.24.92";
+  var wsUri = "ws://159.89.149.247:8467";
   var output;
+  var sendButton;
+  var msgBox;
 
-  function init()
-  {
+  function init() {
     output = document.getElementById("output");
-    testWebSocket();
+    sendButton = document.getElementById("sendbutton");
+    msgBox = document.getElementById("msg");
+    initWebSocket();
   }
 
-  function testWebSocket()
-  {
+  function initWebSocket() {
     websocket = new WebSocket(wsUri);
     websocket.onopen = function(evt) { onOpen(evt) };
     websocket.onclose = function(evt) { onClose(evt) };
@@ -21,46 +39,51 @@
     websocket.onerror = function(evt) { onError(evt) };
   }
 
-  function onOpen(evt)
-  {
-    writeToScreen("CONNECTED");
-    doSend("WebSocket rocks");
+  function onOpen(evt) {}
+
+  function onClose(evt) {
+    writeToScreen("Connection terminated... Please refresh if you wish to continue chatting.");
   }
 
-  function onClose(evt)
-  {
-    writeToScreen("DISCONNECTED");
+  function onMessage(evt) {
+    writeToScreen('<span style="color: blue;">[IN]: ' + evt.data + '</span>');
   }
 
-  function onMessage(evt)
-  {
-    writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
-    websocket.close();
+  function onMessageOut(msg) {
+    writeToScreen('<span style="color: green;">[OUT]: ' + msg + '</span>');
   }
 
-  function onError(evt)
-  {
-    writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+  function onError(evt) {
+    writeToScreen('<span style="color: red;">----- ERROR -----:</span> ' + evt.data);
   }
 
-  function doSend(message)
-  {
-    writeToScreen("SENT: " + message);
-    websocket.send(message);
-  }
-
-  function writeToScreen(message)
-  {
+  function writeToScreen(message) {
     var pre = document.createElement("p");
     pre.style.wordWrap = "break-word";
     pre.innerHTML = message;
     output.appendChild(pre);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function msgServer(message) {
+    websocket.send(message);
+  }
+
+  function sendMsg() {
+    onMessageOut(msgBox.value);
+    msgServer(msgBox.value);
+    msgBox.value = '';
+    return false;
+  }
+
+  function checkEnterPress(e, textarea) {
+    var code = (e.keyCode ? e.keyCode : e.which);
+    if(code == 13) {
+      sendMsg();
+    }
   }
 
   window.addEventListener("load", init, false);
 
   </script>
-
-  <h2>WebSocket Test</h2>
-
-  <div id="output"></div>
+  </html>
