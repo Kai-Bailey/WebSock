@@ -94,29 +94,75 @@ class WebSocketServer():
 
         address = client.getpeername()
         while address in self.clients:
-            data = client.recv(2048)
-            valid, data = self._decode_data_frame(data)
-            if valid == FrameType.TEXT:
-                logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
-                self.on_data_receive(client, data)
-            elif valid == FrameType.CLOSE:
-                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            self._recv(client)
+
+            # data = client.recv(2048)
+            # valid, data = self._decode_data_frame(data)
+            # if valid == FrameType.TEXT:
+            #     logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
+            #     self.on_data_receive(client, data)
+            # elif valid == FrameType.CLOSE:
+            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
                 
-                # Server sent closing message client connection has already closed
-                if self.clients[address]:
-                    break
-                
-                self.on_connection_close(client)
-                self._initiate_close(client)
-                self.clients.pop(client.getpeername(), None)
-                client.close()
-            elif valid == FrameType.PING:
-                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-                self._pong(client)
-            elif valid == FrameType.PONG:
-                logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            #     # Server sent closing message client connection has already closed
+            #     if self.clients[address]:
+            #         break
+            #     self.on_connection_close(client)
+            #     self._initiate_close(client)
+            #     self.clients.pop(client.getpeername(), None)
+            #     client.close()
+            # elif valid == FrameType.PING:
+            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            #     self._pong(client)
+            # elif valid == FrameType.PONG:
+            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            # else:
+            #     self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
+
+    def recv(self, client):
+        """Receive data from the client. This function will not call the user defined on_data_receive
+           but will instead return the data. If a the next message from the client is not data (for example a close
+           request) that message will be handled and none will be returned. This thread will be blocked until a
+           message is received.
+        
+            :param client: The client to receive a message from.
+            :returns: The message sent by the client.
+        """
+        return self._recv(client, user=True)
+
+    def _recv(self, client, user=False):
+        """Receive a message from the client. Will block this thread until a message is received.
+        
+            :param client: The client to receive a message from.
+        """
+        address = client.getpeername()    
+        data = client.recv(2048)
+        valid, data = self._decode_data_frame(data)
+        if valid == FrameType.TEXT:
+            logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
+            if user:
+                return data
             else:
-                self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
+                self.on_data_receive(client, data)
+        elif valid == FrameType.CLOSE:
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            
+            # Server sent closing message client connection has already closed
+            if not self.clients[address]:
+                self.close_client(client)
+
+                # self.on_connection_close(client)
+                # self._initiate_close(client)
+                # self.clients.pop(client.getpeername(), None)
+                # client.close()
+
+        elif valid == FrameType.PING:
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+            self._pong(client)
+        elif valid == FrameType.PONG:
+            logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
+        else:
+            self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
     def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
