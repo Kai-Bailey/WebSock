@@ -96,28 +96,6 @@ class WebSocketServer():
         while address in self.clients:
             self._recv(client)
 
-            # data = client.recv(2048)
-            # valid, data = self._decode_data_frame(data)
-            # if valid == FrameType.TEXT:
-            #     logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
-            #     self.on_data_receive(client, data)
-            # elif valid == FrameType.CLOSE:
-            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-                
-            #     # Server sent closing message client connection has already closed
-            #     if self.clients[address]:
-            #         break
-            #     self.on_connection_close(client)
-            #     self._initiate_close(client)
-            #     self.clients.pop(client.getpeername(), None)
-            #     client.close()
-            # elif valid == FrameType.PING:
-            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            #     self._pong(client)
-            # elif valid == FrameType.PONG:
-            #     logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            # else:
-            #     self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
 
     def recv(self, client):
         """Receive data from the client. This function will not call the user defined on_data_receive
@@ -150,11 +128,6 @@ class WebSocketServer():
             # Server sent closing message client connection has already closed
             if not self.clients[address]:
                 self.close_client(client)
-
-                # self.on_connection_close(client)
-                # self._initiate_close(client)
-                # self.clients.pop(client.getpeername(), None)
-                # client.close()
 
         elif valid == FrameType.PING:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
