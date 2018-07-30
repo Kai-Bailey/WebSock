@@ -1,0 +1,125 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  
+    <title>Chatroom</title>
+    <meta content="Chatroom, Websocket, websock, WebSock" name="keywords">
+    <meta content="A demonstration of the websock python package" name="description">
+  
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,500,500i,600,600i,700,700i|Playfair+Display:400,400i,700,700i,900,900i"
+      rel="stylesheet">
+  
+    <!-- Bootstrap CSS File -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/chatAppClient.css">
+
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row justify-content-center">
+        <!-- <h1>WebSock Example Chatroom</h1>
+        <ul>
+          <li>By default, your messages will be sent to everyone online.</li>
+          <li>To send a message to a specific user, use the format '@username your-message' where 
+            username is replaced with their username.
+          </li>
+        </ul> -->
+
+        <div class="jumbotron">
+            <div class="container">
+              <div class="chat-title">
+                <h1 class="display-4 chat-title">Websock Chatroom</h1>
+              </div>
+              <p class="lead">Welcome to the websock chatroom! This chat room is a demonstration of the python package websock. Websock is a light weight multithreaded websocket server written in python.</p>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div id="output" style="overflow-y:scroll; height:500px;"></div>
+      </div>
+      <div class="row justify-content-center">
+        <textarea id="msg" rows="1" cols="50" onKeyPress="checkEnterPress(event, this)" ></textarea>
+      </div>
+      <div class="row justify-content-center">
+        <!-- <button id="sendbutton" type="button" onclick="sendMsg()">Send</button> -->
+        <button id="sendbutton" type="button" class="btn btn-secondary btn-lg btn-block send-button" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </body>
+
+  <script language="javascript" type="text/javascript">
+  var wsUri = "ws://127.0.01:8467";
+  var output;
+  var sendButton;
+  var msgBox;
+
+  function init() {
+    output = document.getElementById("output");
+    sendButton = document.getElementById("sendbutton");
+    msgBox = document.getElementById("msg");
+    initWebSocket();
+  }
+
+  function initWebSocket() {
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt) {}
+
+  function onClose(evt) {
+    writeToScreen("Connection terminated... Please refresh if you wish to continue chatting.");
+  }
+
+  function onMessage(evt) {
+    writeToScreen('<div class="message__list"><div class="message__item message__item--bot"><span class="message message--bot">' + evt.data + '</span></div></div>');
+  }
+
+  function onMessageOut(msg) {
+    writeToScreen('<div class="message__list"><div class="message__item message__item--user"><span class="message message--user">' + msg + '</span></div></div>');
+  }
+
+  function onError(evt) {
+    writeToScreen('<span style="color: red;">----- ERROR -----:</span> ' + evt.data);
+  }
+
+  function writeToScreen(message) {
+    var pre = document.createElement("p");
+    pre.style.wordWrap = "break-word";
+    pre.innerHTML = message;
+    output.appendChild(pre);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function msgServer(message) {
+    websocket.send(message);
+  }
+
+  function sendMsg() {
+    onMessageOut(msgBox.value);
+    msgServer(msgBox.value);
+    msgBox.value = '';
+    return false;
+  }
+
+  function checkEnterPress(e, textarea) {
+    var code = (e.keyCode ? e.keyCode : e.which);
+    if(code == 13) {
+      sendMsg();
+    }
+  }
+
+  window.addEventListener("load", init, false);
+
+  </script>
+  </html>
