@@ -25,9 +25,15 @@
 
 .message-box {
   overflow-y:scroll; 
-  height:500px;
-  /* border: 1px solid #333; */
+  height:350px;
 }
+
+@media (min-width: 750px){
+  .message-box {
+    overflow-y:scroll; 
+    height:500px;
+  }
+  }
 
 /*-----------------------------------------------------------------------------------*/
 /*  Messages
@@ -50,12 +56,6 @@
   list-style: none;
   width: 100%;
   position: relative;
-  
-  /* &:after {
-    content: '';
-    display: table;
-    clear: both;
-  } */
 }
 
 .message__item {
@@ -65,27 +65,11 @@
 
 .message__item--bot {
   float: left;
-  
-  /* &:first-of-type .message {
-    border-top-left-radius: 20px;
-  }
-  
-  &:last-of-type .message {
-    border-bottom-left-radius: 20px;
-  } */
 }
 
 .message__item--user {
   float: right;
   text-align: right;
-  
-  /* &:first-of-type .message {
-    border-top-right-radius: 20px;
-  }
-  
-  &:last-of-type .message {
-    border-bottom-right-radius: 20px;
-  } */
 }
 
 .message {
@@ -98,7 +82,6 @@
 .message--bot {
   background-color: #eee;
   border-radius: 3px 20px 20px 3px;
-  /* margin-left: 35px; */
 }
 
 .message--user {
@@ -106,30 +89,3 @@
   color: #fff;
   border-radius: 20px 3px 3px 20px;
 }
-
-/* .bot__image {
-  width: 28px;
-  height: 28px;
-  position: absolute;
-  bottom: 3px;
-  left: 0;
-  border-radius: 20px;
-} */
-
-/* .answer {
-  position: fixed;
-  bottom: 0;
-  background-color: #fff;
-  width: 100%;
-  padding: 10px;
-}
-
-.answer__button {
-  background-color: #0baaff;
-  border-radius: 20px;
-  color: #fff;
-  padding: 8px 15px;
-  margin-top: 2px;
-  display: inline-block;
-  cursor: pointer;
-} */
