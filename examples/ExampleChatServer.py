@@ -50,7 +50,7 @@ def on_connection_open(client):
 def on_error(exception):
     """Called when the server returns an error
     """
-    raise exception
+    server.close_client(exception.client)
 
 
 def on_connection_close(client):
