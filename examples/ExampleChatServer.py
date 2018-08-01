@@ -20,11 +20,16 @@ socket_folder = os.path.join(proj_folder, 'websocket')
 sys.path.insert(0, socket_folder)
 
 import WebSocketServer
-#from chatterbot import ChatBot
+from chatterbot import ChatBot
 
 URL = "127.0.0.1"
 PORT = 8467
 BOT_PREFIX = "@BOT: "
+
+chatbot = ChatBot(
+    'chatServer',
+    trainer='chatterbot.trainers.ChatterBotCorpusTrainer'
+)
 
 
 def on_data_receive(client, data):
@@ -60,15 +65,7 @@ def on_server_destruct():
 
 
 def getBotResp(msg):
-    return BOT_PREFIX + "How are you today?"
-
-# chatbot = ChatBot(
-#     'chatServer',
-#     trainer='chatterbot.trainers.ChatterBotCorpusTrainer'
-# )
-
-# # Train based on the english corpus
-# chatbot.train("chatterbot.corpus.english")
+    return BOT_PREFIX + str(chatbot.get_response(msg))
 
 
 # Dictionary of users
@@ -85,10 +82,15 @@ class User():
         self.client_socket = client_socket
 
 
-server = WebSocketServer.WebSocketServer('', PORT,
-                                         on_data_receive=on_data_receive,
-                                         on_connection_open=on_connection_open,
-                                         on_error=on_error,
-                                         on_connection_close=on_connection_close,
-                                         on_server_destruct=on_server_destruct)
-server.serve_forever()
+if __name__ == "__main__":
+
+    # Train based on the english corpus
+    chatbot.train("chatterbot.corpus.english")
+
+    server = WebSocketServer.WebSocketServer(URL, PORT,
+                                             on_data_receive=on_data_receive,
+                                             on_connection_open=on_connection_open,
+                                             on_error=on_error,
+                                             on_connection_close=on_connection_close,
+                                             on_server_destruct=on_server_destruct)
+    server.serve_forever()
