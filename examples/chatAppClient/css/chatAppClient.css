@@ -1,4 +1,5 @@
 
+
 .chat-title {
   text-align: center;
 }
@@ -21,6 +22,10 @@
 .type-message {
   width: 80%;
   padding-top: 10px;
+}
+
+.card {
+  width: 70%
 }
 
 .message-box {
