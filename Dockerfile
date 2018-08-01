@@ -6,4 +6,4 @@ COPY . .
 
 EXPOSE 80
 
-CMD ["python", "./websocket/ExampleChatServer.py"]
+CMD ["python", "./examples/ExampleChatServer.py"]
