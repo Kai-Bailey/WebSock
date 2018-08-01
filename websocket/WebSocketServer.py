@@ -149,14 +149,17 @@ class WebSocketServer():
         data = WebSocketServer._encode_data_frame(data_type, data)
         client.send(data)
 
-    def send_all(self, client, data):
+    def send_all(self, client, data, echo=False):
         """Send a string of data to all clients.
 
         :param data: A string of data formatted as ASCII
+        :param client: The client initiating the data transfer.
+        :param echo: A boolean that indicates whether 'client' 
+        should receive an echo of the message they are initiating.
         """
-
-        for client in self.clients.values():
-            self.send(client, data)
+        for endpoint in self.clients.values():
+            if endpoint != client or echo:
+                self.send(endpoint, data)
 
     def _opening_handshake(self, client, data):
         """Derives handshake response to a client upgrade request.
