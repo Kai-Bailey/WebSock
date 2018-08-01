@@ -115,7 +115,12 @@ class WebSocketServer():
         """
         address = client.getpeername()    
         data = client.recv(2048)
-        valid, data = self._decode_data_frame(data)
+        
+        try:
+            valid, data = self._decode_data_frame(data)
+        except:
+            valid = None
+         
         if valid == FrameType.TEXT:
             logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_IN, valid.name, client.getsockname(), data))
             if user:
