@@ -1,11 +1,4 @@
-import os
-import sys
-
-proj_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-socket_folder = os.path.join(proj_folder, 'websocket')
-sys.path.insert(0, socket_folder)
-
-import WebSocketServer
+from websock import WebSocketServer
 
 def on_data_receive(client, data):
     """Called by the WebSocketServer when data is received."""
@@ -34,10 +27,10 @@ def on_server_destruct():
     """Called immediately prior to the WebSocketServer shutting down."""
     pass
 
-ws = WebSocketServer.WebSocketServer("127.0.0.1", 8467, 
-                                     on_data_receive=on_data_receive,
-                                     on_connection_open=on_connection_open, 
-                                     on_error=on_error, 
-                                     on_connection_close=on_connection_close)
+ws = WebSocketServer("127.0.0.1", 8467, 
+                    on_data_receive=on_data_receive,
+                    on_connection_open=on_connection_open, 
+                    on_error=on_error, 
+                    on_connection_close=on_connection_close)
 ws.serve_forever()
 

@@ -49,9 +49,9 @@ def on_server_destruct():
 Then, simply import and instantiate a new WebSocketServer object. The server expects a host and port, as well as any combination of the above methods.
 
 ```python
-import WebSocketServer
+from websock import WebSocketServer
 
-my_server = WebSocketServer.WebSocketServer(
+my_server = WebSocketServer(
     "127.0.0.1",        # Example host.
     8467,               # Example port.
     on_data_receive     = on_data_receive,

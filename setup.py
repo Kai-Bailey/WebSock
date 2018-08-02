@@ -9,7 +9,7 @@ def read(fname):
 
 
 setup(name='websock',
-      version = '0.1.3',
+      version = '0.1.4',
       author = 'Kai Bailey',
       author_email = 'kbailey1@ualberta.ca',
       url = 'https://github.com/Kai-Bailey/websocket',
@@ -18,4 +18,4 @@ setup(name='websock',
       long_description_content_type='text/markdown',
       license = 'MIT', 
       keywords = 'websocket client server multithreaded', 
-      packages = find_packages(exclude=['docs', 'tests']))
+      packages = find_packages(exclude=['docs', 'tests', 'logo']))

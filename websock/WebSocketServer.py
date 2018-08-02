@@ -3,8 +3,8 @@ import threading
 import hashlib
 import base64
 import logging
-from DataFrameFormat import *
-from ServerException import *
+from .DataFrameFormat import *
+from .ServerException import *
 
 class WebSocketServer():
 

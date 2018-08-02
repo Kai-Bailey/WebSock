@@ -12,14 +12,7 @@ chatbot:message
 Disconnect from the chat server
 disconnect
 """
-import os
-import sys
-
-proj_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-socket_folder = os.path.join(proj_folder, 'websocket')
-sys.path.insert(0, socket_folder)
-
-import WebSocketServer
+from websock import WebSocketServer
 from chatterbot import ChatBot
 
 URL = "127.0.0.1"
@@ -87,10 +80,10 @@ if __name__ == "__main__":
     # Train based on the english corpus
     chatbot.train("chatterbot.corpus.english")
 
-    server = WebSocketServer.WebSocketServer(URL, PORT,
-                                             on_data_receive=on_data_receive,
-                                             on_connection_open=on_connection_open,
-                                             on_error=on_error,
-                                             on_connection_close=on_connection_close,
-                                             on_server_destruct=on_server_destruct)
+    server = WebSocketServer(URL, PORT,
+                            on_data_receive=on_data_receive,
+                            on_connection_open=on_connection_open,
+                            on_error=on_error,
+                            on_connection_close=on_connection_close,
+                            on_server_destruct=on_server_destruct)
     server.serve_forever()
