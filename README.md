@@ -5,7 +5,11 @@
 
 <img src="logo/WebSock.JPG" width="60%">
 
-A lightweight, multithreaded WebSocket server written in Python. 
+A lightweight, multithreaded WebSocket server written in Python.  
+
+## Example Use Case
+
+To demonstrate one use case for WebSock, an online chat application has been set up [here](http://websock-chat.ml/chatAppClient.html). The web server is built on top of WebSock. The code for the chat application can be found within the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).
 
 ## Description
 
@@ -63,6 +67,8 @@ my_server = WebSocketServer(
 
 my_server.serve_forever()
 ```
+
+For more guidance, check out the code for the example chat application built using WebSock in the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).
 ## API Documentation
 You can check out the full documentation for the API [here](https://websock.readthedocs.io/en/latest/).
 
