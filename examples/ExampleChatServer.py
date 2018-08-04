@@ -44,12 +44,14 @@ def on_error(exception):
     """Called when the server returns an error
     """
     server.close_client(exception.client)
+    raise Exception
 
 
 def on_connection_close(client):
     """Called by the WebSocketServer when a connection is closed."""
     ip = client.getpeername()
-    users.pop(ip)
+    if ip in users:
+        users.pop(ip)
 
 
 def on_server_destruct():
