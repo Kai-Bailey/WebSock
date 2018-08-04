@@ -54,23 +54,10 @@ class TestHandShake(unittest.TestCase):
             "Sec-WebSocket-Version: 13\r\n\r\n"
         )
 
-        upgrade_request_bad_connection = (
-            "GET /chat HTTP/1.1\r\n"
-            "Host: example.com:8000\r\n"
-            "Upgrade: websocket\r\n"
-            "Connection: Maintain\r\n"
-            "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-            "Sec-WebSocket-Version: 13\r\n\r\n"
-        )
-
         ws = WS.WebSocketServer(None, None)
 
         valid, _ = ws._opening_handshake(
             None, upgrade_request_bad_upgrade.encode())
-        self.assertFalse(valid)
-
-        valid, _ = ws._opening_handshake(
-            None, upgrade_request_bad_connection.encode())
         self.assertFalse(valid)
 
 

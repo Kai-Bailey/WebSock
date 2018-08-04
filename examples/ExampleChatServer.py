@@ -15,8 +15,8 @@ disconnect
 from websock import WebSocketServer
 from chatterbot import ChatBot
 
-URL = "127.0.0.1"
-PORT = 8467
+URL = ''
+PORT = 80
 BOT_PREFIX = "@BOT: "
 
 chatbot = ChatBot(
