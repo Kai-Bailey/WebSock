@@ -9,7 +9,7 @@ def read(fname):
 
 
 setup(name='websock',
-      version = '0.1.6',
+      version = '0.1.7',
       author = 'Kai Bailey',
       author_email = 'kbailey1@ualberta.ca',
       url = 'https://github.com/Kai-Bailey/websocket',
