@@ -9,7 +9,7 @@ A lightweight, multithreaded WebSocket server written in Python.
 
 ## Example Use Case - Chat Application
 
-To demonstrate one use case for WebSock, an online chat application has been set up [here](http://websock-chat.ml/chatAppClient.html). The application's backend server is built on top of WebSock and is deployed within a Docker container hosted by Digital Ocean. The code for the chat application is provided within the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).
+To demonstrate one use case for WebSock, an online chat application has been set up [here](http://websock-chat.ml/). The application's backend server is built on top of WebSock and is deployed within a Docker container hosted by Digital Ocean. The code for the chat application is provided within the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).
 
 ## Description
 
