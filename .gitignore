@@ -3,6 +3,9 @@ _liveshareMessage.txt
 .vscode
 .vs
 
+# pycharm
+.idea
+
 # MacOS 
 *.DS_Store
 

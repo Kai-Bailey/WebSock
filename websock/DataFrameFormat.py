@@ -110,6 +110,7 @@ PAYLOAD = {  # The low/high bytes for the payload depend on the payload length f
 
 from enum import IntEnum
 
+
 class FrameType(IntEnum):
     CONTINUATION = 0
     TEXT = 1

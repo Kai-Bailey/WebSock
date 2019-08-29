@@ -6,6 +6,7 @@ import logging
 from .DataFrameFormat import *
 from .ServerException import *
 
+
 class WebSocketServer():
 
     _SEC_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -96,7 +97,6 @@ class WebSocketServer():
         while address in self.clients:
             self._recv(client)
 
-
     def recv(self, client):
         """Receive data from the client. This function will not call the user defined on_data_receive
            but will instead return the data. If a the next message from the client is not data (for example a close
@@ -140,7 +140,8 @@ class WebSocketServer():
         elif valid == FrameType.PONG:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
         else:
-            self.on_error(WebSocketInvalidDataFrame("Recieved Invalid Data Frame", client))
+            # Received Invalid Data Frame
+            self.close_client(client)
 
     def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
@@ -148,9 +149,7 @@ class WebSocketServer():
         :param data: The data to send.
         :param client: The Client to send the data too.
         :param data_type: The FrameType -- assumed to be a utf-8 encoded String if left out.
-        """ 
-        logging.info("{} {}: {} - '{}'".format(WebSocketServer._LOG_OUT,
-                                               data_type.name, client.getsockname(), data if data else ''))
+        """
         data = WebSocketServer._encode_data_frame(data_type, data)
         client.send(data)
 
@@ -239,7 +238,7 @@ class WebSocketServer():
         mask_key_high = mask_key_low + MASK_KEY[LEN] if mask else mask_key_low
         mask_key = payload = None
 
-        if mask: # Need to unmask the payload data.
+        if mask:  # Need to unmask the payload data.
             mask_key = data[mask_key_low: mask_key_high]
             encrypted = data[mask_key_high: mask_key_high+payload_len]
             payload = bytearray(encrypted[i]^mask_key[i%4] for i in range(len(encrypted)))
@@ -261,7 +260,7 @@ class WebSocketServer():
         data = data.encode() if data else None
 
         fin = 1  # No fragmentation support yet.
-        mask = 0 # Server never masks data.
+        mask = 0  # Server never masks data.
         opcode = frame_type.value
 
         # Create the data frame one byte at a time.

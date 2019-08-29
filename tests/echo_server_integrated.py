@@ -12,7 +12,7 @@ proj_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 socket_folder = os.path.join(proj_folder, 'websocket')
 sys.path.insert(0, socket_folder)
 
-import websock
+from websock import WebSocketServer
 
 try:
     from websocket import create_connection
@@ -37,14 +37,14 @@ class TestIntegrated(unittest.TestCase):
             """
             raise exception
 
-        server = WebSocketServer.WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_error=on_error)
-        server_thread = threading.Thread(target=server.serve_once, args=(), daemon=True)
+        server = WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_error=on_error)
+        server_thread = threading.Thread(target=server.serve_once(), args=(), daemon=True)
         server_thread.start()
 
         print('Connected')
-        ws = create_connection("ws://localhost:8467")     
+        ws = create_connection("ws://localhost:8467")
         ws.send("Hello, World")
-        result =  ws.recv()
+        result = ws.recv()
         ws.close()
 
         self.assertEqual(result, "Hello, World!")
