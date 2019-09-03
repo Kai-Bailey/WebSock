@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
+
 def read(fname):
     """
     Returns path to README
@@ -9,7 +10,7 @@ def read(fname):
 
 
 setup(name='websock',
-      version = '1.0.1',
+      version = '1.0.2',
       author = 'Kai Bailey',
       author_email = 'kbailey1@ualberta.ca',
       url = 'https://github.com/Kai-Bailey/websocket',
