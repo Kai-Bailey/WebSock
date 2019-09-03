@@ -7,7 +7,7 @@ from .DataFrameFormat import *
 from .ServerException import *
 
 
-class WebSocketServer():
+class WebSocketServer:
 
     _SEC_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
     _HANDKSHAKE_RESP = (
@@ -75,7 +75,6 @@ class WebSocketServer():
         else:
             self._manage_client(client)
 
-
     def _manage_client(self, client):
         """This function is run on a separate thread for each client. It will complete the opening handshake 
             and then listen for incoming messages executing the users defined functions. The thread will close
@@ -113,8 +112,12 @@ class WebSocketServer():
         
             :param client: The client to receive a message from.
         """
-        address = client.getpeername()    
-        data = client.recv(2048)
+        try:
+            address = client.getpeername()
+            data = client.recv(2048)
+        except ConnectionError:
+            self.close_client(client, hard_close=True)
+            return None
         
         try:
             valid, data = self._decode_data_frame(data)
@@ -141,7 +144,8 @@ class WebSocketServer():
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
         else:
             # Received Invalid Data Frame
-            self.close_client(client)
+            logging.critical("Received Invalid Data Frame")
+            self.close_client(client, hard_close=True)
 
     def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
@@ -247,7 +251,6 @@ class WebSocketServer():
 
         return (frame_type, bytes(payload).decode() if frame_type != FrameType.CLOSE else None)
 
-
     @staticmethod
     def _encode_data_frame(frame_type, data):
         """Formats data into a data frame as per RFC 6455.
@@ -310,15 +313,17 @@ class WebSocketServer():
         """
         self._initiate_close(client)
 
-    def close_client(self, client, status_code=None, app_data=None):
+    def close_client(self, client, status_code=None, app_data=None, hard_close=False):
         """Close the connection with a client.
 
         :param client: The client to close the connection with.
         :param status_code: A 16 bit optional status code.
         :param app_data: A utf-8 encoded String to include with the close frame.
+        :param  hard_close: A boolean which indicates whether the client needs to be closed hard or soft
         """
         self.on_connection_close(client)
-        self._initiate_close(client, status_code=status_code, app_data=app_data)
+        if not hard_close:
+            self._initiate_close(client, status_code=status_code, app_data=app_data)
         self.clients.pop(client.getpeername(), None)
         client.close()
 

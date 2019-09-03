@@ -38,7 +38,7 @@ class TestIntegrated(unittest.TestCase):
             raise exception
 
         server = WebSocketServer("127.0.0.1", 8467, on_data_receive=on_data_receive, on_error=on_error)
-        server_thread = threading.Thread(target=server.serve_once(), args=(), daemon=True)
+        server_thread = threading.Thread(target=server.serve_once, args=(), daemon=True)
         server_thread.start()
 
         print('Connected')
