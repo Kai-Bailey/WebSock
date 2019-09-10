@@ -1,3 +1,4 @@
+import errno
 import socket
 import threading
 import hashlib
@@ -27,11 +28,11 @@ class WebSocketServer:
         self.port = port
         self.alive = True
         self.clients = {}   # Dictionary of active clients, remove when the connection is closed.
-        self.on_data_receive = on_data_receive if on_data_receive != None else self._default_func
-        self.on_connection_open = on_connection_open if on_connection_open != None else self._default_func
-        self.on_connection_close = on_connection_close if on_connection_close != None else self._default_func
-        self.on_server_destruct = on_server_destruct if on_server_destruct != None else self._default_func
-        self.on_error = on_error if on_error != None else self._default_func
+        self.on_data_receive = on_data_receive if on_data_receive is not None else self._default_func
+        self.on_connection_open = on_connection_open if on_connection_open is not None else self._default_func
+        self.on_connection_close = on_connection_close if on_connection_close is not None else self._default_func
+        self.on_server_destruct = on_server_destruct if on_server_destruct is not None else self._default_func
+        self.on_error = on_error if on_error is not None else self._default_func
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.DEBUG = DEBUG
 
@@ -118,7 +119,14 @@ class WebSocketServer:
         except ConnectionError:
             self.close_client(client, hard_close=True)
             return None
-        
+        except OSError as exc:
+            # Socket is not connected.
+            if exc.errno == errno.ENOTCONN:
+                self.close_client(client, hard_close=True)
+                return None
+            else:
+                raise
+
         try:
             valid, data = self._decode_data_frame(data)
         except:

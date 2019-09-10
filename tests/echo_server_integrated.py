@@ -1,7 +1,7 @@
+import threading
 import unittest
 import sys
 import os
-import threading
 try:
     import thread
 except ImportError:
