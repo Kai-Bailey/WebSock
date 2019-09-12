@@ -192,7 +192,7 @@ class WebSocketServer:
         resp = (False, None)
         tokens = data.decode().split("\r\n")
 
-        if "Upgrade: websocket" not in tokens:
+        if "Upgrade: websocket" not in tokens and "Upgrade: WebSocket" not in tokens:
             return resp
 
         for token in tokens[1:]:
