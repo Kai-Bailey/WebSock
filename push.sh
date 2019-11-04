@@ -7,8 +7,6 @@ setup_git() {
 
 commit_website_files() {
   git status
-  git checkout -b gh-pages
-  git status
   git add .
   git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
 }
