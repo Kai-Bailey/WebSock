@@ -3,6 +3,8 @@
 setup_git() {
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "Travis CI"
+  git remote remove origin
+  git init
 }
 
 commit_website_files() {
