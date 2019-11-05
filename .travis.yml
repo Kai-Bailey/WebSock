@@ -8,3 +8,18 @@ install:
 
 script:
 - python -m unittest discover
+- rm autobahn-test.py && rm push.sh
+- wget https://raw.githubusercontent.com/Haegi/WebSock/dev/autobahn-test.py
+- wget https://raw.githubusercontent.com/Haegi/WebSock/dev/push.sh
+- rm -R autobahn-python
+- git clone https://github.com/crossbario/autobahn-python.git
+- cd autobahn-python/wstest && make downloads && make build && make versions && make setup
+- python ../../autobahn-test.py &
+- make test_server
+after_success:
+- chmod 0700 ./../../push.sh
+- cd reports/servers
+- "./../../../../push.sh"
+env:
+  global:
+    secure: 0XdxzwJM6vpwpQZpk4Xfw3IGzsZmTfil5DqorNWXrw+UkkaXM4e4SE9oBICNInsWi81p6keZGnUN6Ni59ILPT8GJW3iuZfJbFjx6QdkA9jonXxnksEoRK/IdDpeLHkRIIVW3LlDBYHJoZKoCbBIHHfjRCUP9NLW4wdbSGNKqMhxxV1I4hx93g2yDue7VbenpCs/xIEhceiyaJIGjuVCs7lnI3/G8EYRngf9Sqo0E+YqLuDwos9IEWpOwUvvpUxHzWy0vauk95rYgxXgT/DnpHAyk1NlknealIj+2y2lT2knOM8SPddqZ9khshFUK7ykyviNmHbHWyd6ab29+dh2wzH3aGIKRhieTnAp5j36yEIcOvLcfQH9WYQIel4vC/OYXNj96OWBq2wGZbXqUuQcdqjiIcZVLmw8KS3pwi85qDRl4RECcdnxJXTN9fvh/SHOmKX10jgHNT9TKiX0JXL/3uPkXRA2ixslMqlWZwyYhl4tsT4+r7iEICU6q2eTiuqA35Hugi3Xgl7jN1VmHEd+KvkzBrWoORDF6u9NfSRxuRJ8FNit4K0ZHmA6UhVc+7lqhjNTVWucxSkuuS7bG83S85LbbHGqVyf368Vi0x8mSyQ3yN4Vn62Y5Z41krkUhp4SawTbM0bg2EJ3Vg7if18XDJV4nX1+JmNx2aetMBhzeKj4=
