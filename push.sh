@@ -14,7 +14,7 @@ commit_website_files() {
 upload_files() {
   git checkout -b gh-pages
   git remote add origin-pages https://${GH_TOKEN}@github.com/Haegi/WebSock.git > /dev/null 2>&1
-  git push --quiet --set-upstream origin-pages gh-pages 
+  git push --quiet --set-upstream origin-pages gh-pages --force
 }
 
 setup_git
