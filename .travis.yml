@@ -8,10 +8,8 @@ install:
 
 script:
 - python -m unittest discover
-- rm autobahn-test.py && rm push.sh
 - wget https://raw.githubusercontent.com/Haegi/WebSock/dev/autobahn-test.py
 - wget https://raw.githubusercontent.com/Haegi/WebSock/dev/push.sh
-- rm -R autobahn-python
 - git clone https://github.com/crossbario/autobahn-python.git
 - cd autobahn-python/wstest && make downloads && make build && make versions && make setup
 - python ../../autobahn-test.py &
