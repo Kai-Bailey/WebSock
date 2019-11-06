@@ -9,10 +9,11 @@ install:
 script:
 - python -m unittest discover
 - git clone https://github.com/crossbario/autobahn-python.git
-- cd autobahn-python/wstest && make downloads && make build && make versions && make setup
+- cd autobahn-python/wstest && make downloads > /dev/null && make build > /dev/null && make versions && make setup > /dev/null
 - python ../../autobahn-test.py &
 - make test_server
 after_success:
+- chmod 0700 ./../../push.sh
 - cd reports/servers
 - "./../../../../push.sh"
 env:
