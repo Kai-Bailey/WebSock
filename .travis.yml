@@ -8,14 +8,11 @@ install:
 
 script:
 - python -m unittest discover
-- wget https://raw.githubusercontent.com/Haegi/WebSock/dev/autobahn-test.py
-- wget https://raw.githubusercontent.com/Haegi/WebSock/dev/push.sh
 - git clone https://github.com/crossbario/autobahn-python.git
 - cd autobahn-python/wstest && make downloads && make build && make versions && make setup
 - python ../../autobahn-test.py &
 - make test_server
 after_success:
-- chmod 0700 ./../../push.sh
 - cd reports/servers
 - "./../../../../push.sh"
 env:
