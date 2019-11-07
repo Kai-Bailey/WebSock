@@ -1,15 +1,13 @@
 language: python
-
 python:
-- "3.6"
-
+- '3.6'
 install:
 - pip install websocket-client
-
 script:
 - python -m unittest discover
 - git clone https://github.com/crossbario/autobahn-python.git
-- cd autobahn-python/wstest && make downloads > /dev/null && make build > /dev/null && make versions && make setup > /dev/null
+- cd autobahn-python/wstest && make downloads > /dev/null && make build > /dev/null
+  && make versions && make setup > /dev/null
 - python ../../autobahn-test.py &
 - make test_server
 after_success:
@@ -18,4 +16,4 @@ after_success:
 - "./../../../../push.sh"
 env:
   global:
-    secure: 0XdxzwJM6vpwpQZpk4Xfw3IGzsZmTfil5DqorNWXrw+UkkaXM4e4SE9oBICNInsWi81p6keZGnUN6Ni59ILPT8GJW3iuZfJbFjx6QdkA9jonXxnksEoRK/IdDpeLHkRIIVW3LlDBYHJoZKoCbBIHHfjRCUP9NLW4wdbSGNKqMhxxV1I4hx93g2yDue7VbenpCs/xIEhceiyaJIGjuVCs7lnI3/G8EYRngf9Sqo0E+YqLuDwos9IEWpOwUvvpUxHzWy0vauk95rYgxXgT/DnpHAyk1NlknealIj+2y2lT2knOM8SPddqZ9khshFUK7ykyviNmHbHWyd6ab29+dh2wzH3aGIKRhieTnAp5j36yEIcOvLcfQH9WYQIel4vC/OYXNj96OWBq2wGZbXqUuQcdqjiIcZVLmw8KS3pwi85qDRl4RECcdnxJXTN9fvh/SHOmKX10jgHNT9TKiX0JXL/3uPkXRA2ixslMqlWZwyYhl4tsT4+r7iEICU6q2eTiuqA35Hugi3Xgl7jN1VmHEd+KvkzBrWoORDF6u9NfSRxuRJ8FNit4K0ZHmA6UhVc+7lqhjNTVWucxSkuuS7bG83S85LbbHGqVyf368Vi0x8mSyQ3yN4Vn62Y5Z41krkUhp4SawTbM0bg2EJ3Vg7if18XDJV4nX1+JmNx2aetMBhzeKj4=
+    secure: UighEOqhh/ye4cCKWevw0tRhSX67tUsS65qlczkOOlpeg4rs5nS8sRjDf1ilsAUe3Xc4jpxon86nreLa0NYZM29QOS2egt5zRymz/QHJ2RdiTCK2J0Z2i9KF3RKb/vhvnjYPFba83UeNKrd9t0JNf4p3JNbWcdX3GZX1lnhw95V0mVwZgTTN15Hguz6WA3USHETm+FnUiQDcSrSKFdQl6peq5rS4xWRg7TxR/Z8cf1b75lk6vW0fE1oRpTKfIYD/D0E+S+64PfJAtLLXhnmhaoSSRXdTx0OMWuDM6XNgOxICTF3ETkhRzDiIfQUSeop+L+RVpcoj0xKeKc/y3vzes3md+YZ5jJtJ82pGqOoXbSmcQkwl1ImGffnYoX4Qf+NDGIXgq4nn7Go6v+VReZ76ZQFIKy+sRh9jmyI3ZyRpSGD0410S6Vb1m6gla+FhfnTGKekQElqbRtix3kPxuHvU6T0fPhWqrG+Kc4CcurkXdKkAd3usMwKuM+G3OEcvrjONwQmaAwHHykCPKLseBcw74hOhoAi+O03+bDK03ftMMIwV7HfuQgXrwIoBhsXhJ/hQbfGg3wriH7nyVFDwiM0RhHOgoc5VtTZppXmyMiUku6UuiFaOht0n7kr8ou6xI6Vl40PhsZMpJRbjXZVwn4AIIo3walhzGQH1OpguXHPjBMQ=
