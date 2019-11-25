@@ -83,4 +83,4 @@ You can check out the full documentation for the API [here](https://websock.read
 
 ## Future Development
 
-* Integration of the [Autobahn test suite](https://github.com/crossbario/autobahn-testsuite) to verify protocol coverage.
+* Fix all errors from the autobahn tests.
