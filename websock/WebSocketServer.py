@@ -66,8 +66,8 @@ class WebSocketServer:
             self.server.listen(5)
 
         logging.info("Server is ready to accept")
-        client, addr = self.server.accept()
-        self.clients[addr] = client
+        client, address = self.server.accept()
+        self.clients[address] = client
         logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getsockname()))
 
         if serve_forever:
@@ -117,12 +117,12 @@ class WebSocketServer:
             address = client.getpeername()
             data = client.recv(2048)
         except ConnectionError:
-            self.close_client(client, hard_close=True)
+            self.close_client(address, hard_close=True)
             return None
         except OSError as exc:
             # Socket is not connected.
             if exc.errno == errno.ENOTCONN:
-                self.close_client(client, hard_close=True)
+                self.close_client(address, hard_close=True)
                 return None
             else:
                 raise
@@ -143,7 +143,7 @@ class WebSocketServer:
             
             # Server sent closing message client connection has already closed
             if not self.clients[address]:
-                self.close_client(client)
+                self.close_client(address)
 
         elif valid == FrameType.PING:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
@@ -153,7 +153,7 @@ class WebSocketServer:
         else:
             # Received Invalid Data Frame
             logging.critical("Received Invalid Data Frame")
-            self.close_client(client, hard_close=True)
+            self.close_client(address, hard_close=True)
 
     def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
@@ -321,19 +321,19 @@ class WebSocketServer:
         """
         self._initiate_close(client)
 
-    def close_client(self, client, status_code=None, app_data=None, hard_close=False):
+    def close_client(self, address, status_code=None, app_data=None, hard_close=False):
         """Close the connection with a client.
 
-        :param client: The client to close the connection with.
+        :param address: The client address to close the connection with.
         :param status_code: A 16 bit optional status code.
         :param app_data: A utf-8 encoded String to include with the close frame.
-        :param  hard_close: A boolean which indicates whether the client needs to be closed hard or soft
+        :param hard_close: A boolean which indicates whether the client needs to be closed hard or soft.
         """
-        self.on_connection_close(client)
+        self.on_connection_close(self.clients[address])
         if not hard_close:
-            self._initiate_close(client, status_code=status_code, app_data=app_data)
-        self.clients.pop(client.getpeername(), None)
-        client.close()
+            self._initiate_close(self.clients[address], status_code=status_code, app_data=app_data)
+        self.clients.pop(address, None)
+        self.clients[address].close()
 
     def close_server(self, status_code=None, app_data=None):
         """Close the connection with each client and then close the underlying tcp socket of the server.
@@ -342,8 +342,8 @@ class WebSocketServer:
         :param app_data: A utf-8 encoded String to include with the close frame.
         """
 
-        for client in list(self.clients.values()):
-            self.close_client(client, status_code=status_code, app_data=app_data)
+        for address in list(self.clients.keys()):
+            self.close_client(address, status_code=status_code, app_data=app_data)
 
         self.on_server_destruct()
         self.server.close()
