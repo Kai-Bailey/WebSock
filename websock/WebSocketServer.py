@@ -315,7 +315,7 @@ class WebSocketServer:
     def _respond_to_close(self, client):
         """Acknowledge the closing of a client connection -- for now, just send an empty
         close frame (i.e. same as initiating a close frame with no app_data). Later, this
-        will be udpated to echo the status_code from the client's close frame.
+        will be updated to echo the status_code from the client's close frame.
 
         :param client: The Client who requested the connection close.
         """
@@ -332,8 +332,8 @@ class WebSocketServer:
         self.on_connection_close(self.clients[address])
         if not hard_close:
             self._initiate_close(self.clients[address], status_code=status_code, app_data=app_data)
-        self.clients.pop(address, None)
         self.clients[address].close()
+        self.clients.pop(address, None)
 
     def close_server(self, status_code=None, app_data=None):
         """Close the connection with each client and then close the underlying tcp socket of the server.
