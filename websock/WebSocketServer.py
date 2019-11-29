@@ -147,7 +147,7 @@ class WebSocketServer:
 
         elif valid == FrameType.PING:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            self._pong(client)
+            self._pong(client, data)
         elif valid == FrameType.PONG:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
         else:
@@ -355,9 +355,9 @@ class WebSocketServer:
         :param client: The Client to ping."""
         self.send(client, None, FrameType.PING)
 
-    def _pong(self, client):
+    def _pong(self, client, data):
         """Send a Pong frame back to a client.
 
         :param client: The Client who send the Ping.
         """
-        self.send(client, None, FrameType.PONG)
+        self.send(client, data, FrameType.PONG)
