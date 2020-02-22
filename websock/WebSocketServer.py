@@ -22,7 +22,7 @@ class WebSocketServer:
     _LOG_IN = "[IN] "
     _LOG_OUT = "[OUT]"
 
-    def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
+    def __init__(self, ip='', port=80, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
         self.server = None
         self.ip = ip
         self.port = port
@@ -126,7 +126,6 @@ class WebSocketServer:
                 return None
             else:
                 raise
-
         try:
             valid, data = self._decode_data_frame(data)
         except:
@@ -192,12 +191,14 @@ class WebSocketServer:
         resp = (False, None)
         tokens = data.decode().split("\r\n")
 
-        if "Upgrade: websocket" not in tokens and "Upgrade: WebSocket" not in tokens:
+        upgrade_set = ["Upgrade: WebSocket", "Upgrade: websocket", "upgrade: websocket"]
+        label_set = ["Sec-WebSocket-Key", "sec-websocket-key"]
+        if not bool(set(upgrade_set).intersection(tokens)):
             return resp
 
         for token in tokens[1:]:
             label, value = token.split(": ", 1)
-            if label == "Sec-WebSocket-Key":
+            if label in label_set:
                 digest = WebSocketServer._digest(value)
                 resp = (True, (WebSocketServer._HANDKSHAKE_RESP %
                                (digest)).encode())
