@@ -15,10 +15,7 @@ env:
     secure: UighEOqhh/ye4cCKWevw0tRhSX67tUsS65qlczkOOlpeg4rs5nS8sRjDf1ilsAUe3Xc4jpxon86nreLa0NYZM29QOS2egt5zRymz/QHJ2RdiTCK2J0Z2i9KF3RKb/vhvnjYPFba83UeNKrd9t0JNf4p3JNbWcdX3GZX1lnhw95V0mVwZgTTN15Hguz6WA3USHETm+FnUiQDcSrSKFdQl6peq5rS4xWRg7TxR/Z8cf1b75lk6vW0fE1oRpTKfIYD/D0E+S+64PfJAtLLXhnmhaoSSRXdTx0OMWuDM6XNgOxICTF3ETkhRzDiIfQUSeop+L+RVpcoj0xKeKc/y3vzes3md+YZ5jJtJ82pGqOoXbSmcQkwl1ImGffnYoX4Qf+NDGIXgq4nn7Go6v+VReZ76ZQFIKy+sRh9jmyI3ZyRpSGD0410S6Vb1m6gla+FhfnTGKekQElqbRtix3kPxuHvU6T0fPhWqrG+Kc4CcurkXdKkAd3usMwKuM+G3OEcvrjONwQmaAwHHykCPKLseBcw74hOhoAi+O03+bDK03ftMMIwV7HfuQgXrwIoBhsXhJ/hQbfGg3wriH7nyVFDwiM0RhHOgoc5VtTZppXmyMiUku6UuiFaOht0n7kr8ou6xI6Vl40PhsZMpJRbjXZVwn4AIIo3walhzGQH1OpguXHPjBMQ=
 deploy:
 - provider: script
-  script: >
-	chmod 0700 ./push.sh &&
-	cd report &&
-	"./../push.sh"
+  script: chmod 0700 ./push.sh && cd report && "./../push.sh"
   on:
     branch: dev
 - provider: pypi
