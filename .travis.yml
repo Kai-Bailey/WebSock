@@ -9,12 +9,10 @@ script:
 - python -m unittest discover
 - mkdir report
 - python autobahn-test.py &
-- docker run -it -v ~/report:/autobahn-python-master/wstest/reports/servers --network="host" haegi/autobahn-testsuite make test_server
+- docker run -it -v /report:/autobahn-python-master/wstest/reports/servers --network="host" haegi/autobahn-testsuite make test_server
 after_success:
 - chmod 0700 ./push.sh
-- ls
 - cd report
-- ls
 - "./../push.sh"
 env:
   global:
