@@ -19,7 +19,8 @@ upload_files() {
   git push --quiet --set-upstream origin-pages gh-pages --force
 }
 
-if [ "$TRAVIS_BRANCH" == "dev" ]; then
+if [ "$TRAVIS_BRANCH" == "dev" ]
+then
 	setup_git
 	commit_website_files
 	upload_files
