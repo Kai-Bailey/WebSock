@@ -1,20 +1,19 @@
 language: python
 python:
-- '2.7'
 - '3.6'
+services:
+- docker
 install:
 - pip install websocket-client
 script:
 - python -m unittest discover
-- git clone https://github.com/crossbario/autobahn-python.git
-- cd autobahn-python/wstest && make downloads > /dev/null && make build > /dev/null
-  && make versions && make setup > /dev/null
-- python ../../autobahn-test.py &
-- make test_server
+- mkdir report
+- python autobahn-test.py &
+- docker run -it -v ~/report:/autobahn-python-master/wstest/reports/servers --network="host" haegi/autobahn-testsuite make test_server
 after_success:
-- chmod 0700 ./../../push.sh
-- cd reports/servers
-- "./../../../../push.sh"
+- chmod 0700 ./push.sh
+- cd report
+- "./../push.sh"
 env:
   global:
     secure: UighEOqhh/ye4cCKWevw0tRhSX67tUsS65qlczkOOlpeg4rs5nS8sRjDf1ilsAUe3Xc4jpxon86nreLa0NYZM29QOS2egt5zRymz/QHJ2RdiTCK2J0Z2i9KF3RKb/vhvnjYPFba83UeNKrd9t0JNf4p3JNbWcdX3GZX1lnhw95V0mVwZgTTN15Hguz6WA3USHETm+FnUiQDcSrSKFdQl6peq5rS4xWRg7TxR/Z8cf1b75lk6vW0fE1oRpTKfIYD/D0E+S+64PfJAtLLXhnmhaoSSRXdTx0OMWuDM6XNgOxICTF3ETkhRzDiIfQUSeop+L+RVpcoj0xKeKc/y3vzes3md+YZ5jJtJ82pGqOoXbSmcQkwl1ImGffnYoX4Qf+NDGIXgq4nn7Go6v+VReZ76ZQFIKy+sRh9jmyI3ZyRpSGD0410S6Vb1m6gla+FhfnTGKekQElqbRtix3kPxuHvU6T0fPhWqrG+Kc4CcurkXdKkAd3usMwKuM+G3OEcvrjONwQmaAwHHykCPKLseBcw74hOhoAi+O03+bDK03ftMMIwV7HfuQgXrwIoBhsXhJ/hQbfGg3wriH7nyVFDwiM0RhHOgoc5VtTZppXmyMiUku6UuiFaOht0n7kr8ou6xI6Vl40PhsZMpJRbjXZVwn4AIIo3walhzGQH1OpguXHPjBMQ=
