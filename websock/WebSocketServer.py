@@ -22,7 +22,7 @@ class WebSocketServer:
     _LOG_IN = "[IN] "
     _LOG_OUT = "[OUT]"
 
-    def __init__(self, ip, port, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
+    def __init__(self, ip='', port=80, on_data_receive=None, on_connection_open=None, on_connection_close=None, on_server_destruct=None, on_error=None, DEBUG=False):
         self.server = None
         self.ip = ip
         self.port = port
@@ -66,8 +66,8 @@ class WebSocketServer:
             self.server.listen(5)
 
         logging.info("Server is ready to accept")
-        client, addr = self.server.accept()
-        self.clients[addr] = client
+        client, address = self.server.accept()
+        self.clients[address] = client
         logging.info("{} CONNECTION: {}".format(WebSocketServer._LOG_IN, client.getsockname()))
 
         if serve_forever:
@@ -117,16 +117,15 @@ class WebSocketServer:
             address = client.getpeername()
             data = client.recv(2048)
         except ConnectionError:
-            self.close_client(client, hard_close=True)
+            self.close_client(address, hard_close=True)
             return None
         except OSError as exc:
             # Socket is not connected.
             if exc.errno == errno.ENOTCONN:
-                self.close_client(client, hard_close=True)
+                self.close_client(address, hard_close=True)
                 return None
             else:
                 raise
-
         try:
             valid, data = self._decode_data_frame(data)
         except:
@@ -143,17 +142,17 @@ class WebSocketServer:
             
             # Server sent closing message client connection has already closed
             if not self.clients[address]:
-                self.close_client(client)
+                self.close_client(address)
 
         elif valid == FrameType.PING:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
-            self._pong(client)
+            self._pong(client, data)
         elif valid == FrameType.PONG:
             logging.info("{} {}: {}".format(WebSocketServer._LOG_IN, valid.name, client.getsockname()))
         else:
             # Received Invalid Data Frame
             logging.critical("Received Invalid Data Frame")
-            self.close_client(client, hard_close=True)
+            self.close_client(address, hard_close=True)
 
     def send(self, client, data, data_type=FrameType.TEXT):
         """Send a string of data to the client.
@@ -192,12 +191,14 @@ class WebSocketServer:
         resp = (False, None)
         tokens = data.decode().split("\r\n")
 
-        if "Upgrade: websocket" not in tokens and "Upgrade: WebSocket" not in tokens:
+        upgrade_set = ["Upgrade: WebSocket", "Upgrade: websocket", "upgrade: websocket"]
+        label_set = ["Sec-WebSocket-Key", "sec-websocket-key"]
+        if not bool(set(upgrade_set).intersection(tokens)):
             return resp
 
         for token in tokens[1:]:
             label, value = token.split(": ", 1)
-            if label == "Sec-WebSocket-Key":
+            if label in label_set:
                 digest = WebSocketServer._digest(value)
                 resp = (True, (WebSocketServer._HANDKSHAKE_RESP %
                                (digest)).encode())
@@ -315,25 +316,25 @@ class WebSocketServer:
     def _respond_to_close(self, client):
         """Acknowledge the closing of a client connection -- for now, just send an empty
         close frame (i.e. same as initiating a close frame with no app_data). Later, this
-        will be udpated to echo the status_code from the client's close frame.
+        will be updated to echo the status_code from the client's close frame.
 
         :param client: The Client who requested the connection close.
         """
         self._initiate_close(client)
 
-    def close_client(self, client, status_code=None, app_data=None, hard_close=False):
+    def close_client(self, address, status_code=None, app_data=None, hard_close=False):
         """Close the connection with a client.
 
-        :param client: The client to close the connection with.
+        :param address: The client address to close the connection with.
         :param status_code: A 16 bit optional status code.
         :param app_data: A utf-8 encoded String to include with the close frame.
-        :param  hard_close: A boolean which indicates whether the client needs to be closed hard or soft
+        :param hard_close: A boolean which indicates whether the client needs to be closed hard or soft.
         """
-        self.on_connection_close(client)
+        self.on_connection_close(self.clients[address])
         if not hard_close:
-            self._initiate_close(client, status_code=status_code, app_data=app_data)
-        self.clients.pop(client.getpeername(), None)
-        client.close()
+            self._initiate_close(self.clients[address], status_code=status_code, app_data=app_data)
+        self.clients[address].close()
+        self.clients.pop(address, None)
 
     def close_server(self, status_code=None, app_data=None):
         """Close the connection with each client and then close the underlying tcp socket of the server.
@@ -342,8 +343,8 @@ class WebSocketServer:
         :param app_data: A utf-8 encoded String to include with the close frame.
         """
 
-        for client in list(self.clients.values()):
-            self.close_client(client, status_code=status_code, app_data=app_data)
+        for address in list(self.clients.keys()):
+            self.close_client(address, status_code=status_code, app_data=app_data)
 
         self.on_server_destruct()
         self.server.close()
@@ -355,9 +356,9 @@ class WebSocketServer:
         :param client: The Client to ping."""
         self.send(client, None, FrameType.PING)
 
-    def _pong(self, client):
+    def _pong(self, client, data):
         """Send a Pong frame back to a client.
 
         :param client: The Client who send the Ping.
         """
-        self.send(client, None, FrameType.PONG)
+        self.send(client, data, FrameType.PONG)

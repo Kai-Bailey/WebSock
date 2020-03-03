@@ -68,7 +68,8 @@ my_server = WebSocketServer(
 my_server.serve_forever()
 ```
 
-For more guidance, check out the code for the example chat application built using WebSock in the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).
+For more guidance, check out the code for the example chat application built using WebSock in the [examples directory](https://github.com/Kai-Bailey/WebSock/tree/master/examples).   
+There you will also find the [flutter example](https://github.com/Kai-Bailey/WebSock/tree/master/examples/flutter/flutter.md).
 ## API Documentation
 You can check out the full documentation for the API [here](https://websock.readthedocs.io/en/latest/).
 
@@ -83,4 +84,4 @@ You can check out the full documentation for the API [here](https://websock.read
 
 ## Future Development
 
-* Integration of the [Autobahn test suite](https://github.com/crossbario/autobahn-testsuite) to verify protocol coverage.
+* Fix all errors from the [autobahn-tests](https://haegi.github.io/WebSock/).
