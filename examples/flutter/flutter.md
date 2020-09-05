@@ -59,3 +59,22 @@ Echo Client
 Connected
 Echo Server
 ```
+
+### Flutter array payload
+To send array data between WebSock and Flutter, you need to serialize the array (list) to a string.   
+Example:
+```
+import 'package:web_socket_channel/io.dart';
+import 'dart:convert';
+
+void main() async {
+
+  var channel = IOWebSocketChannel.connect("ws://<YOUR-IP>:8467");
+  final payload = List.from(["1","2","3"]);
+  final jsonEncoder = JsonEncoder();
+  channel.sink.add(jsonEncoder.convert(payload));
+  channel.stream.listen((message) {
+    print(message);
+  });
+}
+```
