@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -eo pipefail
 
 setup_git() {
   git config --global user.email "travis@travis-ci.org"
@@ -19,9 +20,19 @@ upload_files() {
   git push --quiet --set-upstream origin-pages gh-pages --force
 }
 
-if [ $TRAVIS_BRANCH == "dev" ]
-then
-	setup_git
-	commit_website_files
-	upload_files
+push() {
+  setup_git
+  commit_website_files
+  upload_files
+}
+
+if [ $TRAVIS_BRANCH == "dev" ]; then
+  if [ -d $1 ] && [ ! -z $1 ]; then
+    echo "Changing to directory: $(pwd)/$1"
+    pushd $1
+    ls
+    popd
+  else
+    echo "Using directory: $(pwd)"
+  fi
 fi

@@ -19,4 +19,4 @@ setup(name='websock',
       long_description_content_type='text/markdown',
       license = 'MIT', 
       keywords = 'websocket client server multithreaded', 
-      packages = find_packages(exclude=['docs', 'tests', 'logo']))
+      packages = find_packages(exclude=['docs', 'tests', 'logo', 'scripts']))
